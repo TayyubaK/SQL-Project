@@ -7,11 +7,11 @@ Answer the following questions and provide the SQL queries used to find the answ
 **SQL Queries:**
 ```sql
 WITH q1_clean AS (
-	SELECT
-		CASE 
-		    WHEN country='(not set)' THEN 'NULL'
-			ELSE country
-		END AS country,
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
 		CASE
 			WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
 			ELSE city
@@ -19,8 +19,7 @@ WITH q1_clean AS (
 		SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
 	FROM 
         all_sessions
-	WHERE 
-        totaltransactionrevenue IS NOT NULL
+	WHERE totaltransactionrevenue IS NOT NULL
 	GROUP BY 
         country, 
         city
