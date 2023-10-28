@@ -574,7 +574,7 @@ Query #2
 
 **Answer:**
 * The United States is the biggest market by a wide margin. Revenue from the U.S. makes up 92.11% of total revenue from all countries. The #2 ranked city is Israel accounting for 4.22%.
-* Looking at the city-level revenue, even the #4 ranked city in the U.S. generates 7.42% of revenue, which is comparable to the #1 ranked city of Tel Aviv-Yafo, Israel.
+* Looking at the city-level revenue, even the #4 ranked city in the U.S. generates 7.42% of revenue, which is slightly higher than the #1 ranked city of Tel Aviv-Yafo, Israel with 7.35%.
 * The U.S. and its cities are very important to the revenue generation on the site. Other markets have yet to grow significantly.
 
 
