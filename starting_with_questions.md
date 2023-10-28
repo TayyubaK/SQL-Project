@@ -90,7 +90,8 @@ WITH q2_clean AS (
             WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
             ELSE city
         END AS city,
-        AVG(total_ordered::INT) OVER (PARTITION BY country, city) AS avg_total_ordered
+        AVG(total_ordered::INT) OVER (
+            PARTITION BY country, city) AS avg_total_ordered
     FROM 
         all_sessions alls
     JOIN sales_by_sku sbs ON alls.productsku=sbs.productsku
@@ -289,7 +290,7 @@ WHERE
 GROUP BY 
     main_category
 ORDER BY 
-    count_rank_1 DESC
+    count_rank_1 DESC;
 
 --8 rows affected.
 ```
@@ -315,19 +316,166 @@ And if the final query is modified to 'WHERE cat_rank=2', Nest-USA and Apparel a
 
 **SQL Queries:**
 
+Create tmp_alls_products with 1:1 relationship between productsku and v2productname
+
+```sql
+--Step 1: Add productsku and v2productname values that already have a 1:1 relationship.
+CREATE TEMP TABLE tmp_alls_products AS
+SELECT 
+    DISTINCT(dup.psku) AS productsku, 
+    alls.v2productname
+FROM (	
+    SELECT 
+        DISTINCT(productsku) AS psku
+    FROM 
+        all_sessions
+    GROUP BY 
+        productsku
+    HAVING 
+        count(DISTINCT(v2productname))=1
+    ORDER BY 
+        productsku) dup
+JOIN all_sessions alls ON alls.productsku=dup.psku
+GROUP BY 
+    dup.psku,
+    alls.v2productname
+ORDER BY 
+dup.psku
+--462 rows
+
+--Step 2: Find all productsku values with multiple v2productname values. Count the number of times each name appears and rank according to frequency, keep only rank #1.
+SELECT *
+FROM (
+    SELECT 
+        DISTINCT(dup.psku) AS productsku, 
+        alls.v2productname, 
+        COUNT(v2productname) AS name_count,
+        DENSE_RANK() OVER (
+            PARTITION BY dup.psku
+            ORDER BY COUNT(v2productname) DESC) AS name_rank
+    FROM (	
+        SELECT 
+            DISTINCT(productsku) AS psku
+        FROM 
+            all_sessions
+        GROUP BY 
+            productsku
+        HAVING 
+            count(DISTINCT(v2productname))>1
+        ORDER BY productsku) dup
+    JOIN all_sessions alls ON alls.productsku=dup.psku
+    GROUP BY 
+        dup.psku,
+        alls.v2productname
+    ORDER BY 
+        dup.psku) rank
+WHERE name_rank=1
+--76 rows (2 products are tied for rank #1)
+
+--Step 3: Clean tied product names and add final list to existing tmp_alls_products table
+INSERT INTO tmp_alls_products (productsku, v2productname)
+SELECT DISTINCT(productsku), 
+	CASE
+		WHEN v2productname = 'Google Women''s Tee Purple' 
+			THEN 'Google Women''s Long Sleeve Tee Lavender'
+		WHEN v2productname = 'Google Four Color EDC Flashlight'
+			THEN 'Google Flashlight'
+		ELSE v2productname
+	END
+FROM (
+	SELECT * 
+	FROM (
+		SELECT DISTINCT(dup.psku) AS productsku, 
+			alls.v2productname, 
+			COUNT(v2productname) AS name_count,
+			DENSE_RANK() OVER (PARTITION BY dup.psku
+							   ORDER BY COUNT(v2productname) DESC) AS name_rank
+		FROM (	
+			SELECT DISTINCT(productsku) AS psku
+			FROM all_sessions
+			GROUP BY productsku
+			HAVING count(DISTINCT(v2productname))>1
+			ORDER BY productsku) dup
+		JOIN all_sessions alls ON alls.productsku=dup.psku
+		GROUP BY dup.psku,alls.v2productname
+		ORDER BY dup.psku) rank
+WHERE name_rank=1) rank_dup;
+
+--Resulting tmp_alls_products table has 536 rows in total.
+```
+Use tmp_alls_products and sales_by_sku to answer the question:
+```sql
+WITH sales_sku AS (
+    SELECT 
+        sbs.*, 
+        tmp_alls_products.v2productname
+    FROM 
+        sales_by_sku sbs
+    LEFT JOIN tmp_alls_products ON sbs.productsku=tmp_alls_products.productsku
+    WHERE (total_ordered::INT) <> 0
+        AND v2productname IS NOT NULL
+),
+country_city_order AS (
+    SELECT 
+        DISTINCT(ss.productsku),
+        (ss.total_ordered::INT), 
+        ss.v2productname, 
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city
+    FROM 
+        sales_sku ss
+    JOIN all_sessions alls ON ss.productsku=alls.productsku 
+    WHERE (alls.transactions::INT)=1
+),
+all_ranked AS (
+    SELECT 
+        country, 
+        city, 
+        productsku, 
+        total_ordered, 
+        v2productname,
+        DENSE_RANK() OVER (
+            PARTITION BY country, city 
+            ORDER BY total_ordered DESC) AS ranking
+    FROM 
+        country_city_order
+    WHERE country <> 'NULL'
+        AND city <> 'NULL'
+    ORDER BY 
+        country, 
+        city, 
+        total_ordered DESC
+)
+SELECT *
+FROM all_ranked
+WHERE ranking=1
+ORDER BY
+    country, city ASC;
+
+--14 rows affected.
+```
 
 **Assumptions:**
 
 * productsku is a unique identifier for a product. 
 * One product name can potentially have multiple productsku values as names may overlap, however each productsku should have only 1 name associated with it.
+* Top-selling defined as most quantity ordered
 
 **Answer:**
 
 **Sample Output:**
 
+![q4_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/fab6045b-dfa0-446e-add2-2eb9ec51fa14)
 
+**Data Quality Concerns:**
 
-
+* Using sales_by_sku table ultimately results in dropping 
 
 **Question 5: Can we summarize the impact of revenue generated from each city/country?**
 
