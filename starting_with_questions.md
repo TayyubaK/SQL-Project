@@ -12,18 +12,18 @@ WITH q1_clean AS (
             WHEN country='(not set)' THEN 'NULL'
             ELSE country
         END AS country,
-		CASE
-			WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
-			ELSE city
-		END AS city,
-		SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
-	FROM 
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city,
+        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM 
         all_sessions
-	WHERE totaltransactionrevenue IS NOT NULL
-	GROUP BY 
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
         country, 
         city
-	ORDER BY 
+    ORDER BY 
         totalrev DESC
 )
 SELECT * 
