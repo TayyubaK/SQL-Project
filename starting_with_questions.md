@@ -5,11 +5,11 @@ Answer the following questions and provide the SQL queries used to find the answ
 
 
 **SQL Queries:**
-```postgresql
+```sql
 WITH q1_clean AS (
 	SELECT
 		CASE 
-			WHEN country='(not set)' THEN 'NULL'
+		    WHEN country='(not set)' THEN 'NULL'
 			ELSE country
 		END AS country,
 		CASE
