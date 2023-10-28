@@ -37,6 +37,7 @@ GROUP BY
     totalrev
 ORDER BY 
     totalrev DESC;
+
 --20 rows affected.
 ```
 
@@ -57,6 +58,8 @@ The top 5 cities and countries with the highest level of transaction revenue are
 1. Palo Alto, United States
 1. Tel Aviv-Yafo, Israel
 
+
+
 **Sample Output:**
 
 ![q1_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/942f2cb4-223b-472d-b1ee-0fdac386a131)
@@ -70,30 +73,30 @@ The top 5 cities and countries with the highest level of transaction revenue are
     
     There are 34 cities that would require a closer look. One-off cleaning isn't the most efficient approach. The best way to correct this would be if there was data available with accurate city and country data for reference.
 
-* The all_sessions table has 15,134 rows. Filtering down to rows with transaction revenue leaves 81 rows. Filtering down further to remove country and city values that are not proper names leaves 56 rows. **
+* The all_sessions table has 15,134 rows. Filtering down to rows with transaction revenue leaves 81 rows. Filtering down further to remove country and city values that are not proper names leaves 56 rows.
 
 **Question 2: What is the average number of products ordered from visitors in each city and country?**
 
 
 **SQL Queries:**
-```postgresql
+```sql
 WITH q2_clean AS (
-	SELECT
-		(CASE 
-			WHEN country='(not set)' THEN 'NULL'
-			ELSE country
-		END) AS country,
-		(CASE
-			WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
-			ELSE city
-		END) AS city,
-		AVG(total_ordered::INT) OVER (PARTITION BY country, city) AS avg_total_ordered
-	FROM 
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city,
+        AVG(total_ordered::INT) OVER (PARTITION BY country, city) AS avg_total_ordered
+    FROM 
         all_sessions alls
-	JOIN sales_by_sku sbs ON alls.productsku=sbs.productsku
-	WHERE 
+    JOIN sales_by_sku sbs ON alls.productsku=sbs.productsku
+    WHERE 
         (sbs.total_ordered::INT) > 0
-	GROUP BY 
+    GROUP BY 
         country, 
         city, 
         total_ordered
@@ -110,6 +113,7 @@ GROUP BY
     city
 ORDER BY 
     country;
+
 --206 rows affected.
 ```
 **Assumptions:**
@@ -120,8 +124,8 @@ ORDER BY
 **Answer:**
 
 The city/country with the highest average number of products ordered, with a value of 319 are:
-1. Brno, Czechia - avg_total_ordered = 319
-1. Riyadh, Saudi Arabia - avg_total_ordered = 319
+1. Brno, Czechia
+1. Riyadh, Saudi Arabia
 
 The city/country with the lowest average number of products ordered, with a value of 1 are:
 1. Rosario, Argentina
@@ -151,124 +155,175 @@ The city/country with the lowest average number of products ordered, with a valu
 **Question 3: Is there any pattern in the types (product categories) of products ordered from visitors in each city and country?**
 
 
-SQL Queries:
-```postgresql
-WITH tmp_clean_cat AS (
-SELECT DISTINCT(v2productcategory), main_category
-FROM(
-	SELECT DISTINCT(v2productcategory),
-		  split_part(v2productcategory, '/', 1) AS main_category,
-		  split_part(v2productcategory, '/', 2) AS second_category,
-		  split_part(v2productcategory, '/', 3) AS third_category,
-		  split_part(v2productcategory, '/', 4) AS fourth_category
-	FROM all_sessions) cat_split
-WHERE main_category NOT LIKE 'Home%'
+**SQL Queries:**
+```sql
+WITH clean_cat AS (
+    SELECT 
+        DISTINCT(v2productcategory), 
+        main_category
+    FROM(
+        SELECT 
+            DISTINCT(v2productcategory),
+            split_part(v2productcategory, '/', 1) AS main_category,
+            split_part(v2productcategory, '/', 2) AS second_category,
+            split_part(v2productcategory, '/', 3) AS third_category,
+            split_part(v2productcategory, '/', 4) AS fourth_category
+        FROM 
+            all_sessions) cat_split
+    WHERE main_category NOT LIKE 'Home%'
 
-UNION
+    UNION
 
-SELECT DISTINCT(v2productcategory), second_category
-FROM(
-	SELECT DISTINCT(v2productcategory),
-		  split_part(v2productcategory, '/', 1) AS main_category,
-		  NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
-		  split_part(v2productcategory, '/', 3) AS third_category,
-		  split_part(v2productcategory, '/', 4) AS fourth_category
-	FROM all_sessions) cat_split
-WHERE second_category IS NOT NULL
-	AND second_category NOT IN
-		('Limited Supply', 'Shop by Brand', 'Brands', 'Nest','Men''s T-Shirts')
+    SELECT 
+        DISTINCT(v2productcategory), 
+        second_category
+    FROM(
+        SELECT 
+            DISTINCT(v2productcategory),
+            split_part(v2productcategory, '/', 1) AS main_category,
+            NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
+            split_part(v2productcategory, '/', 3) AS third_category,
+            split_part(v2productcategory, '/', 4) AS fourth_category
+        FROM 
+            all_sessions) cat_split
+    WHERE second_category IS NOT NULL
+        AND second_category NOT IN
+            ('Limited Supply', 'Shop by Brand', 'Brands', 'Nest','Men''s T-Shirts')
 
-UNION
+    UNION
 
-SELECT DISTINCT(v2productcategory), second_category
-FROM(
-	SELECT DISTINCT(v2productcategory),
-		  split_part(v2productcategory, '/', 1) AS main_category,
-		  NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
-		  NULLIF(split_part(v2productcategory, '/', 3),'') AS third_category,
-		  split_part(v2productcategory, '/', 4) AS fourth_category
-	FROM all_sessions) cat_split
-WHERE second_category IS NOT NULL
-	AND third_category IS NULL
-	AND second_category IN
-		('Limited Supply', 'Shop by Brand', 'Brands')
+    SELECT 
+        DISTINCT(v2productcategory), 
+        second_category
+    FROM(
+        SELECT 
+            DISTINCT(v2productcategory),
+            split_part(v2productcategory, '/', 1) AS main_category,
+            NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
+            NULLIF(split_part(v2productcategory, '/', 3),'') AS third_category,
+            split_part(v2productcategory, '/', 4) AS fourth_category
+        FROM 
+            all_sessions) cat_split
+        WHERE second_category IS NOT NULL
+            AND third_category IS NULL
+            AND second_category IN
+                ('Limited Supply', 'Shop by Brand', 'Brands')
 
-UNION
+    UNION
 
-SELECT DISTINCT(v2productcategory), third_category
-FROM(
-	SELECT DISTINCT(v2productcategory),
-		  split_part(v2productcategory, '/', 1) AS main_category,
-		  NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
-		  NULLIF(split_part(v2productcategory, '/', 3),'') AS third_category,
-		  split_part(v2productcategory, '/', 4) AS fourth_category
-	FROM all_sessions) cat_split
-WHERE main_category LIKE 'Home%'
-	AND second_category IN
-		('Limited Supply', 'Shop by Brand', 'Brands', 'Nest')
-	AND third_category IS NOT NULL
-ORDER BY v2productcategory
+    SELECT 
+        DISTINCT(v2productcategory), 
+        third_category
+    FROM(
+        SELECT 
+            DISTINCT(v2productcategory),
+            split_part(v2productcategory, '/', 1) AS main_category,
+            NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
+            NULLIF(split_part(v2productcategory, '/', 3),'') AS third_category,
+            split_part(v2productcategory, '/', 4) AS fourth_category
+        FROM 
+            all_sessions) cat_split
+        WHERE main_category LIKE 'Home%'
+            AND second_category IN
+                ('Limited Supply', 'Shop by Brand', 'Brands', 'Nest')
+            AND third_category IS NOT NULL
+    ORDER BY v2productcategory
 ),
 main_group AS (
-	SELECT DISTINCT ON( ao.country, ao.city, ao.productsku, ao.v2productcategory)ao.*, 
-		tmp_clean_cat.main_category
-	FROM (
-		SELECT 
-			CASE 
-				WHEN country='(not set)' THEN 'NULL'
-				ELSE country
-			END AS country,
-			CASE
-				WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
-			ELSE city
-			END AS city, 
-			productsku, 
-			v2productcategory
-		FROM all_sessions
-		WHERE (transactions::int)=1) ao
-	LEFT JOIN tmp_clean_cat 
-		ON ao.v2productcategory=tmp_clean_cat.v2productcategory
-	WHERE country <> 'NULL'
-	AND city <> 'NULL'
+    SELECT 
+        DISTINCT ON( ao.country, ao.city, ao.productsku, ao.v2productcategory)ao.*, 
+        clean_cat.main_category
+    FROM (
+        SELECT 
+            CASE 
+                WHEN country='(not set)' THEN 'NULL'
+                ELSE country
+            END AS country,
+            CASE
+                WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+                ELSE city
+            END AS city, 
+            productsku, 
+            v2productcategory
+        FROM 
+            all_sessions
+        WHERE (transactions::int)=1) ao
+    LEFT JOIN clean_cat ON ao.v2productcategory=clean_cat.v2productcategory
+    WHERE country <> 'NULL'
+        AND city <> 'NULL'
 ),
 main_cat_count_tbl AS (
-	SELECT country, 
-		city, 
-		main_category, 
-		COUNT(main_category) AS main_cat_count,
-		DENSE_RANK() OVER 
-			(PARTITION BY country, city 
-			 ORDER BY COUNT(main_category) DESC) AS cat_rank
-	FROM main_group
-	GROUP BY country, city, main_category
+    SELECT 
+        country, 
+        city, 
+        main_category, 
+        COUNT(main_category) AS main_cat_count,
+        DENSE_RANK() OVER (
+            PARTITION BY country, city 
+            ORDER BY COUNT(main_category) DESC) AS cat_rank
+    FROM 
+        main_group
+    GROUP BY 
+        country, 
+        city, 
+        main_category
 ),
 q3_final AS (
-	SELECT country, city, main_category, main_cat_count, cat_rank
-	FROM main_cat_count_tbl
-	ORDER BY country, city, cat_rank)
+    SELECT 
+        country, 
+        city, 
+        main_category, 
+        main_cat_count, 
+        cat_rank
+    FROM 
+        main_cat_count_tbl
+    ORDER BY country, city, cat_rank
+)
+SELECT 
+    main_category, 
+    count(main_category) AS count_rank_1
+FROM 
+    q3_final
+WHERE 
+    cat_rank=1
+GROUP BY 
+    main_category
+ORDER BY 
+    count_rank_1 DESC
 
-SELECT main_category, count(main_category) AS count_rank_1
-FROM q3_final
-WHERE cat_rank=1
-GROUP BY main_category
-ORDER BY count_rank_1 DESC
+--8 rows affected.
 ```
-**Assumptions**
+**Assumptions:**
+
+* There are no NULL or blank values for the all_sessions.productsku column. There are no NULL or blank values for all_sessions.v2productcategory. Therefore, each row has a productsku and v2productcategory value.
+* all_sessions.v2categoryname cleaned to extract category information past the 'home/'
 
 **Answer:**
 
+Nest-USA and Apparel are the top product categories by a wide margin. They each rank #1 for ten cities/countries.
+
+And if the final query is modified to 'WHERE cat_rank=2', Nest-USA and Apparel also rank #2 for 2 other cities/countries.
+
 **Sample Output:**
+
+![q3_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/0f12b478-93e8-46b4-bbce-683da0bb97c7)
 
 
 
 **Question 4: What is the top-selling product from each city/country? Can we find any pattern worthy of noting in the products sold?**
 
 
-SQL Queries:
+**SQL Queries:**
 
 
+**Assumptions:**
 
-Answer:
+* productsku is a unique identifier for a product. 
+* One product name can potentially have multiple productsku values as names may overlap, however each productsku should have only 1 name associated with it.
+
+**Answer:**
+
+**Sample Output:**
 
 
 
