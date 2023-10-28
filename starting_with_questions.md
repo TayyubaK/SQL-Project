@@ -340,7 +340,8 @@ GROUP BY
     dup.psku,
     alls.v2productname
 ORDER BY 
-dup.psku
+dup.psku;
+
 --462 rows
 
 --Step 2: Find all productsku values with multiple v2productname values. 
@@ -370,7 +371,8 @@ FROM (
         alls.v2productname
     ORDER BY 
         dup.psku) rank
-WHERE name_rank=1
+WHERE name_rank=1;
+
 --76 rows (2 products are tied for rank #1)
 
 --Step 3: Clean tied product names and add final list to existing tmp_alls_products table
@@ -510,7 +512,7 @@ GROUP BY
     country, 
     totalrev
 ORDER BY 
-    totalrev DESC
+    totalrev DESC;
 
 --5 rows affected
 ```
@@ -552,7 +554,7 @@ SELECT
 FROM 
     q1_clean
 WHERE country <> 'NULL' 
-    AND city <> 'NULL'
+    AND city <> 'NULL';
 
 --20 rows affected
 ```
