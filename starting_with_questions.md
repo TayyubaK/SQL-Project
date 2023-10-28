@@ -1,7 +1,7 @@
 Answer the following questions and provide the SQL queries used to find the answer.
 
     
-**Question 1: Which cities and countries have the highest level of transaction revenues on the site?**
+### **Question 1: Which cities and countries have the highest level of transaction revenues on the site?**
 
 
 **SQL Queries:**
@@ -75,7 +75,7 @@ The top 5 cities and countries with the highest level of transaction revenue are
 
 * The all_sessions table has 15,134 rows. Filtering down to rows with transaction revenue leaves 81 rows. Filtering down further to remove country and city values that are not proper names leaves 56 rows.
 
-**Question 2: What is the average number of products ordered from visitors in each city and country?**
+### **Question 2: What is the average number of products ordered from visitors in each city and country?**
 
 
 **SQL Queries:**
@@ -153,7 +153,7 @@ The city/country with the lowest average number of products ordered, with a valu
     There are 34 cities that would require a closer look. One-off cleaning isn't the most efficient approach. The best way to correct this would be if there was data available with accurate city and country data for reference.
 
 
-**Question 3: Is there any pattern in the types (product categories) of products ordered from visitors in each city and country?**
+### **Question 3: Is there any pattern in the types (product categories) of products ordered from visitors in each city and country?**
 
 
 **SQL Queries:**
@@ -311,7 +311,7 @@ And if the final query is modified to 'WHERE cat_rank=2', Nest-USA and Apparel a
 
 
 
-**Question 4: What is the top-selling product from each city/country? Can we find any pattern worthy of noting in the products sold?**
+### **Question 4: What is the top-selling product from each city/country? Can we find any pattern worthy of noting in the products sold?**
 
 
 **SQL Queries:**
@@ -343,7 +343,8 @@ ORDER BY
 dup.psku
 --462 rows
 
---Step 2: Find all productsku values with multiple v2productname values. Count the number of times each name appears and rank according to frequency, keep only rank #1.
+--Step 2: Find all productsku values with multiple v2productname values. 
+--Count the number of times each name appears and rank according to frequency, keep only rank #1.
 SELECT *
 FROM (
     SELECT 
@@ -477,15 +478,121 @@ ORDER BY
 
 * Using sales_by_sku table ultimately results in dropping 
 
-**Question 5: Can we summarize the impact of revenue generated from each city/country?**
+### **Question 5: Can we summarize the impact of revenue generated from each city/country?**
 
-SQL Queries:
+**SQL Queries:**
+
+Query #1 - Look at revenue at the country-level.
+```sql
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country
+    ORDER BY 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev
+FROM 
+    q1_clean
+WHERE country <> 'NULL'
+GROUP BY 
+    country, 
+    totalrev
+ORDER BY 
+    totalrev DESC
+
+--5 rows affected
+```
+
+Query #2 - Look at city-level ranking
+
+```sql
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+        ELSE city
+        END AS city,
+    SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM 
+        all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country, 
+        city
+    ORDER BY 
+        country, 
+        city, 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    city, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev,
+    DENSE_RANK() OVER (
+        PARTITION BY country
+        ORDER BY totalrev DESC) AS rev_rank
+FROM 
+    q1_clean
+WHERE country <> 'NULL' 
+    AND city <> 'NULL'
+
+--20 rows affected
+```
+
+**Assumptions:**
+* Column 'all_sessions.totaltransactionrevenue' represents the dollar value of a completed transaction.
+
+Query #1
+* Rows where the value of the 'all_sessions.country' column is '(not set)' can be excluded as this information is needed for the purpose of classifying the transaction revenue.
+* Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset' can **_included_** in the results as the purpose of query #1 is to look at the country-level. 
+
+Query #2
+* Rows where the value of the 'all_sessions.country' column is '(not set)' can be excluded as this information is needed for the purpose of classifying the transaction revenue.
+* Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset' can be **_excluded_** as this information is needed for the purpose of classifying transaction revenue. 
+
+    Note, this results in a revenue $6,092.56 difference between the country-level and city-level analysis. The entire amount belongs to the U.S. but since we cannot assign a city to it, the true total sum and percentage of U.S. city revenue may be understated.
+
+**Answer:**
+* The United States is the biggest market by a wide margin. Revenue from the U.S. makes up 92.11% of total revenue from all countries. The #2 ranked city is Israel accounting for 4.22%.
+* Looking at the city-level revenue, even the #4 ranked city in the U.S. generates 7.42% of revenue, which is comparable to the #1 ranked city of Tel Aviv-Yafo, Israel.
+* The U.S. and its cities are very important to the revenue generation on the site. Other markets have yet to grow significantly.
 
 
 
-Answer:
+**Sample Output:**
 
+Query #1
 
+![q5_ans_query1](https://github.com/TayyubaK/SQL-Project/assets/143013434/5553404e-d2f3-4f9a-941b-c9a5368e989d)
+
+Query #2
+
+![q5_ans_query2](https://github.com/TayyubaK/SQL-Project/assets/143013434/646e3db4-8cff-47d5-9c7e-d06c25edfb51)
+
+**Data Quality Concerns:**
+* The same all_sessions.city values correspond to different countries. This isn't always an issue, e.g. London is a city in Canada and in the UK.
+
+    However, in this database there are some obvious issues. E.g. There's a city named 'New York' under Canada. A judgement can't be made about whether the country is correct or the city.
+
+    There are 34 cities that would require a closer look. One-off cleaning isn't the most efficient approach. The best way to correct this would be if there was data available with accurate city and country data for reference.
 
 
 
