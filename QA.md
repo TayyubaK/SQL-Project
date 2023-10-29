@@ -1260,18 +1260,43 @@ AND city NOT IN ('not available in demo dataset','(not set)')
 
 SELECT COUNT(*) FROM (
 WITH q7_clean AS (
-    SELECT
+    SELECT DISTINCT ON (fullvisitorid, date(date), pageviews, country, city)
+        fullvisitorid, 
+        date(date), 
+        pageviews, 
+        totaltransactionrevenue, 
+        transactions, 
         CASE 
             WHEN country='(not set)' THEN 'NULL'
             ELSE country
         END AS country,
-        CASE
+        CASE        
             WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
             ELSE city
-        END AS city,
-        COUNT(pageviews) AS count_pageviews
+        END AS city
     FROM 
         all_sessions
+    GROUP BY 
+        fullvisitorid, 
+        date(date), 
+        pageviews, 
+        totaltransactionrevenue, 
+        transactions, 
+        country, 
+        city
+    ORDER BY 
+        fullvisitorid, 
+        date(date)
+),
+clean_cc AS (
+    SELECT 
+        country, 
+        city, 
+        COUNT(pageviews) AS count_pageviews
+    FROM 
+        q7_clean
+    WHERE country <> 'NULL'
+        AND city <> 'NULL'
     GROUP BY 
         country, 
         city
@@ -1284,9 +1309,7 @@ SELECT
     DENSE_RANK() OVER (
         ORDER BY count_pageviews DESC) AS viewcount_rank
 FROM 
-    q7_clean
-WHERE country <> 'NULL'
-    AND city <> 'NULL'
+    clean_cc
 GROUP BY 
     country, 
     city, 
@@ -1295,23 +1318,90 @@ ORDER BY viewcount_rank ASC
 )
 --Output --> 282
 ```
-* Manually Check - Compare subset from table results to result set
+* Compare subset from table results to result set
 ```sql
-SELECT DISTINCT ON(country, city)
+SELECT COUNT(*) FROM (
+    SELECT
+        country, 
+        city, 
+        fullvisitorid, date(date),
+        count(pageviews) AS count_pageviews
+    FROM 
+        all_sessions
+    WHERE country NOT IN ('(not set)')
+        AND city NOT IN ('not available in demo dataset','(not set)')
+    GROUP BY 
+        country, 
+        city,
+        fullvisitorid,
+        date(date)
+    ORDER BY count_pageviews DESC
+)
+WHERE country='India'
+AND city='Bengaluru';
+--Output --> 72
+
+SELECT * FROM (
+WITH q7_clean AS (
+    SELECT DISTINCT ON (fullvisitorid, date(date), pageviews, country, city)
+        fullvisitorid, 
+        date(date), 
+        pageviews, 
+        totaltransactionrevenue, 
+        transactions, 
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE        
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city
+    FROM 
+        all_sessions
+    GROUP BY 
+        fullvisitorid, 
+        date(date), 
+        pageviews, 
+        totaltransactionrevenue, 
+        transactions, 
+        country, 
+        city
+    ORDER BY 
+        fullvisitorid, 
+        date(date)
+),
+clean_cc AS (
+    SELECT 
+        country, 
+        city, 
+        COUNT(pageviews) AS count_pageviews
+    FROM 
+        q7_clean
+    WHERE country <> 'NULL'
+        AND city <> 'NULL'
+    GROUP BY 
+        country, 
+        city
+    ORDER BY count_pageviews DESC
+)
+SELECT 
     country, 
     city, 
-    pageviews
+    count_pageviews,
+    DENSE_RANK() OVER (
+        ORDER BY count_pageviews DESC) AS viewcount_rank
 FROM 
-    all_sessions
-WHERE pageviews IS NOT NULL  
-    AND country NOT IN ('(not set)')
-	AND city NOT IN ('not available in demo dataset','(not set)')
-	AND country='Brazil'
-ORDER BY country, city, pageviews DESC
---4 rows affected. Row#1 is Brazil, Belo Horizonte, 11
-
-
-
+    clean_cc
+GROUP BY 
+    country, 
+    city, 
+    count_pageviews
+ORDER BY viewcount_rank ASC
+)
+WHERE country='India'
+AND city='Bengaluru'
+--1 row affected. country=India, city=Bengaluru, count_pageviews=72, viewcount_rank=13
 ```
 
 ### **starting_with_data - Question 3**
