@@ -118,6 +118,7 @@ ORDER BY v2productcategory
 --74 rows; each v2productcategory has 1 value for main_category (new column unique to the temp table)
 ```
 
+**
 
 
 ### Question 1 - QA
