@@ -624,7 +624,8 @@ SELECT DISTINCT(main_category), country, city FROM (
         WHERE country <> 'NULL'
             AND city <> 'NULL'
 )
---The query for main group has 56 rows in total. Within those there are 41 distinct main categories for city and country.
+--The query for main group has 56 rows in total. 
+--Within those there are 41 distinct main categories for city and country.
 --Visually inspecting the results, main_category='Apparel' has 12 rows for different cities/countries.
 ```
 
@@ -675,7 +676,8 @@ WHERE cat_rank=1 --alternate: WHERE cat_rank=2
 --10 rows; this indicates 'Apparel is rank #1 in 10 cities
 --alternate query has 2 rows; this indicates 'Apparel' is rank #2 in 2 cities
 --setting condition for cat_rank=3 has 0 results
---CTE 'main_group' showed 'Apparel' had 12 rows. The query for CTE 'main_cat_count_tbl' correctly assigned all 12 rows a rank within their country/city grouping
+--CTE 'main_group' showed 'Apparel' had 12 rows. 
+--The query for CTE 'main_cat_count_tbl' correctly assigned all 12 rows a rank within their country/city grouping
 ```
 
 * SELECT query filters for #1 ranked categories for each country/city, and counts how many times the rank was #1. The result set shows that 'Apparel' was ranked #1 for ten country/city groups. This summary aligns with the results of the base CTE queries.
@@ -737,7 +739,7 @@ ORDER BY
 --this summary result set has kept rows from the base subset intact
 ```
 
-**starting_with_questions - Question 4**
+### **starting_with_questions - Question 4**
 
 * CTE 'main_group' should only keep results where all_sessions.productquantity>0 and city data is clean.
 ```sql
@@ -888,16 +890,163 @@ WHERE (alls.productquantity::INT)>0
 	AND city='Madrid'
 	AND country='Spain'
 --Output -->
-
 -- | country  | city    | v2productname    | productquantity
 -- | Spain    | Madrid  | Waze Dress Socks | 10
 
 ```
 
-**starting_with_questions - Question 5**
+### **starting_with_questions - Question 5**
+* Compare rows and countries in result set to the table
+```sql
+SELECT country FROM(
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country
+    ORDER BY 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev
+FROM 
+    q1_clean
+WHERE country <> 'NULL'
+GROUP BY 
+    country, 
+    totalrev
+ORDER BY 
+    totalrev DESC
+)
+--5 rows affected; 
+--1. United States
+--2. Israel
+--3. Australia
+--4. Canada
+--5. Switzerland
 
-**starting_with_data - Question 1**
+SELECT 
+    DISTINCT country
+FROM all_sessions
+WHERE (transactions::INT)>0  
+    AND totaltransactionrevenue IS NOT NULL
+	AND country NOT IN ('not available in demo dataset','(not set)')
+--5 rows affected; 
+--1. AustraliaUnited States
+--2. CanadaIsrael
+--3. Israel
+--4. SwitzerlandCanada
+--5. United StatesSwitzerland
+```
 
-**starting_with_data - Question 2**
+* Compare totalrev from all_sessions table to result set
 
-**starting_with_data - Question 3**
+```SQL
+SELECT 
+    country, 
+    ROUND((totaltransactionrevenue::NUMERIC/1000000),2) AS trans_rev
+FROM 
+    all_sessions
+WHERE (transactions::INT)>0  
+    AND totaltransactionrevenue IS NOT NULL
+	AND country NOT IN ('not available in demo dataset','(not set)')
+    AND country='Canada'
+ORDER BY 
+    country
+--2 rows affected. trans_rev values are 67.99 and 82.16. Their sum is 150.15
+
+SELECT country, totalrev FROM (
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country
+    ORDER BY 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev
+FROM 
+    q1_clean
+WHERE country <> 'NULL'
+GROUP BY 
+    country, 
+    totalrev
+ORDER BY 
+    totalrev DESC
+)
+WHERE country='Canada'
+--1 row affected; shows Canada and totalrev of 150.15
+```
+
+* Compare sum of totalrev from all_sessions to result set
+```sql
+SELECT 
+    ROUND(SUM(totaltransactionrevenue::NUMERIC/1000000),2) AS trans_rev
+FROM 
+    all_sessions
+WHERE (transactions::INT)>0  
+    AND totaltransactionrevenue IS NOT NULL
+	AND country NOT IN ('not available in demo dataset','(not set)')
+--14281.31
+
+SELECT SUM(totalrev) FROM(
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country
+    ORDER BY 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev
+FROM 
+    q1_clean
+WHERE country <> 'NULL'
+GROUP BY 
+    country, 
+    totalrev
+ORDER BY 
+    totalrev DESC
+)
+--14281.31
+```
+* Manual check - For Canada, the result set shows a totalrev=150.15, and sum_totalrev=14281.31. These values have already been QA'd. 
+
+    In the result set the percent_rev=1.05
+
+    (150.15/14281.31)*100 = 1.05 (rounded)
+
+### **starting_with_data - Question 1**
+
+### **starting_with_data - Question 2**
+
+### **starting_with_data - Question 3**
