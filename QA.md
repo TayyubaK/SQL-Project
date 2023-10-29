@@ -118,8 +118,103 @@ ORDER BY v2productcategory
 --74 rows; each v2productcategory has 1 value for main_category (new column unique to the temp table)
 ```
 
-**
+### **Main Subset  - Transaction Data and County/City**
 
+As many questions ask to consider orders for city/country, several queries use the same conditions to identify rows with transction data and country/city information.
+
+```sql
+SELECT 
+    CASE 
+        WHEN country='(not set)' THEN 'NULL'
+        ELSE country
+    END AS country,
+    CASE
+        WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+        ELSE city
+    END AS city
+FROM 
+    all_sessions
+WHERE (transactions::int)=1
+--81 results 
+
+--add in condition for totaltransactionrevenue 
+SELECT 
+    CASE 
+        WHEN country='(not set)' THEN 'NULL'
+        ELSE country
+    END AS country,
+    CASE
+        WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+        ELSE city
+    END AS city
+FROM 
+    all_sessions
+WHERE (transactions::int)=1
+    AND totaltransactionrevenue IS NOT NULL
+--81 results; this means that rows that have transaction=1, also have a value for totaltransactionrevenue
+
+--Check how many rows with transaction data in all_sessions have countries that are '(not set)'
+SELECT 
+    country, 
+    city
+FROM all_sessions
+WHERE (transactions::int)=1
+    AND totaltransactionrevenue IS NOT NULL
+    AND country='(not set)'
+--0 rows affected; there were no rows with transaction data where the country column had '(not set)'
+
+--Check how many rows with transaction data in all_sessions have cites that are '(not set)' or 'not available in demo dataset'
+SELECT 
+    country, 
+    city
+FROM all_sessions
+WHERE (transactions::int)=1
+    AND totaltransactionrevenue IS NOT NULL
+    AND city IN ('not available in demo dataset','(not set)')
+--25 rows affected
+
+Check how many rows remain after 'NULL' country and city are removed
+WITH null_check AS (
+    SELECT 
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city
+    FROM 
+        all_sessions
+    WHERE (transactions::int)=1
+)
+SELECT * 
+FROM null_check
+WHERE country = 'NULL'
+    OR city = 'NULL'
+--25 results which matches with the number of cities that had '(not set)' or 'not available in demo dataset'
+
+--Check how many rows remain after 'NULL' countr/city values are removed
+WITH null_check AS (
+    SELECT 
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city
+    FROM 
+        all_sessions
+    WHERE (transactions::int)=1
+)
+SELECT * 
+FROM null_check
+WHERE country <> 'NULL'
+    AND city <> 'NULL'
+--56 rows affected; 81 rows with transaction data, 25 rows of those had cities that would be updated to 'NULL'. 81-25 = 56 so the query correctly removes rows.
+```
 
 ### Question 1 - QA
 
