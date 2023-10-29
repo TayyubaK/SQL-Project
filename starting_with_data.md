@@ -67,15 +67,90 @@ Being on the site longer does not correspond with greater spending. The visitor 
 
 ### **Question 2: Which city, country do the most views come from (regardless of transactions)? Does it line up with the highest revenue places?**
 
-SQL Queries:
+**SQL Queries:**
+```sql
+WITH q7_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city,
+        COUNT(pageviews) AS count_pageviews
+    FROM 
+        all_sessions
+    GROUP BY 
+        country, 
+        city
+    ORDER BY count_pageviews DESC
+)
+SELECT 
+    country, 
+    city, 
+    count_pageviews,
+    DENSE_RANK() OVER (
+        ORDER BY count_pageviews DESC) AS viewcount_rank
+FROM 
+    q7_clean
+WHERE country <> 'NULL'
+    AND city <> 'NULL'
+GROUP BY 
+    country, 
+    city, 
+    count_pageviews
+ORDER BY viewcount_rank ASC;
 
-Answer:
+--282 rows affected.
+```
+**Assumptions:**
+* Rows where the value of the 'all_sessions.country' column is '(not set)' can be excluded as this information is needed for the purpose of classifying page views.
+* Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset' can be excluded as this information is needed for the purpose of classifying page views.
 
+**Answer:**
 
+The most views for the site are from U.S. cities. This is generally in-line with where most revenue is generated (see question 5, starting_with_questions.md). 
 
-Question 3: How did visitors who made transactions hear about the site?
+The ranking differs between transaction revenue and page views. For example, San Franciso, U.S. ranks #1 for revenue but it is ranked #3 for page views. It could be of interesing for further analysis.
 
-SQL Queries:
+**Sample Output:**
 
-Answer:
+![q7_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/e66548dd-dfa2-420a-b8ce-df35348b9194)
+
+### **Question 3: How did visitors who made transactions hear about the site?**
+
+**SQL Queries:**
+```sql
+SELECT 
+    DISTINCT(channelgrouping), 
+    COUNT(DISTINCT fullvisitorid) AS count_ordering_visitors,
+    SUM(COUNT(DISTINCT fullvisitorid)) OVER () AS sum_total_ordering_visitors,
+    ROUND((100*(COUNT(DISTINCT fullvisitorid)/SUM(COUNT(DISTINCT fullvisitorid)) OVER ())),2) AS percent_channel
+FROM 
+    all_sessions
+WHERE (transactions::INT) = 1
+GROUP BY 
+    channelgrouping
+ORDER BY count_ordering_visitors DESC
+
+--4 rows affected
+```
+**Assumptions**
+
+* all_sessions.fullvisitorid is a unique identifier for each visitor
+* all_sessions.visitid is an identifier for each visit session
+* all_sessions.channelgrouping captures how visitors heard about the site
+* all_sessions.transactions=1 indicates when a transaction has been made
+
+**Answer:**
+
+* Most visitors, at 40%, belong to the 'Referral' channel. 
+* The 'Direct' and 'Organic Search' channels are comparable at 28.75% and 27.50% , respectively. 
+* 'Paid Search' brings in only 3.75% of visitors. This could indicate evaluating the payoff of spending money on a paid search.
+
+**Sample Output:**
+
+![q8_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/a483813d-ab93-432a-9cea-c00b47341287)
 
