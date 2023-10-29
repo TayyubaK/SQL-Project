@@ -98,25 +98,26 @@ Check counts of country, city, and sum of transaction revenue.
 
 Count of unique countries in result set: 5
 ```sql
-SELECT COUNT(DISTINCT country) FROM ( WITH q1_clean AS (
+SELECT COUNT(DISTINCT country) FROM ( 
+WITH q1_clean AS (
     SELECT
-		CASE 
-			WHEN country='(not set)' THEN 'NULL'
-			ELSE country
-		END AS country,
-		CASE
-			WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
-			ELSE city
-		END AS city,
-		SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
-	FROM 
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city,
+        SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
+    FROM 
         all_sessions
-	WHERE 
+    WHERE 
         totaltransactionrevenue IS NOT NULL
-	GROUP BY 
+    GROUP BY 
         country, 
         city
-	ORDER BY 
+    ORDER BY 
         totalrev DESC
 )
 SELECT * 
@@ -163,24 +164,24 @@ Count of unique cities in result set: 19
 ```sql
 SELECT COUNT(DISTINCT city) FROM (
 WITH q1_clean AS (
-	SELECT
-		CASE 
-			WHEN country='(not set)' THEN 'NULL'
-			ELSE country
-		END AS country,
-		CASE
-			WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
-			ELSE city
-		END AS city,
-		SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
-	FROM 
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city,
+        SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
+    FROM 
         all_sessions
-	WHERE 
+    WHERE 
         totaltransactionrevenue IS NOT NULL
-	GROUP BY 
+    GROUP BY 
         country, 
         city
-	ORDER BY 
+    ORDER BY 
         totalrev DESC
 )
 SELECT * 
@@ -211,27 +212,27 @@ WHERE totaltransactionrevenue IS NOT NULL
 **Sum of total revenue in result set should match sum of transaction revenue values where county and city aren't '(not set)' and 'not available in demo dataset'.**
 
 Sum of transaction revenue from result set: 8,188.75
-```postgresql
-SELECT SUM(totalrev) FROM
-(WITH q1_clean AS (
-	SELECT
-		CASE 
-			WHEN country='(not set)' THEN 'NULL'
-			ELSE country
-		END AS country,
-		CASE
-			WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
-			ELSE city
-		END AS city,
-		SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
-	FROM 
+```sql
+SELECT SUM(totalrev) FROM (
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city,
+        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM 
         all_sessions
-	WHERE 
+    WHERE 
         totaltransactionrevenue IS NOT NULL
-	GROUP BY 
+    GROUP BY 
         country, 
         city
-	ORDER BY 
+    ORDER BY 
         totalrev DESC
 )
 SELECT * 
@@ -250,14 +251,14 @@ ORDER BY
 
 Sum of transaction revenue from all_sessions table: 8,188.75
 
-```postgresql
+```sql
 SELECT 
     SUM(ROUND(totaltransactionrevenue::NUMERIC/1000000,2))
 FROM 
     all_sessions
 WHERE totaltransactionrevenue IS NOT NULL
-	AND country NOT IN ('(not set)','not available in demo dataset')
-	AND city NOT IN ('(not set)','not available in demo dataset')
+    AND country NOT IN ('(not set)','not available in demo dataset')
+    AND city NOT IN ('(not set)','not available in demo dataset')
 --8188.75
 ```
 
