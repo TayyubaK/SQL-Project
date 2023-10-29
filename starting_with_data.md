@@ -143,12 +143,13 @@ ORDER BY count_ordering_visitors DESC
 * all_sessions.visitid is an identifier for each visit session
 * all_sessions.channelgrouping captures how visitors heard about the site
 * all_sessions.transactions=1 indicates when a transaction has been made
+* 'Paid Search' represents when company pay for links to their site to be suggested first
 
 **Answer:**
 
 * Most visitors, at 40%, belong to the 'Referral' channel. 
 * The 'Direct' and 'Organic Search' channels are comparable at 28.75% and 27.50% , respectively. 
-* 'Paid Search' brings in only 3.75% of visitors. This could indicate evaluating the payoff of spending money on a paid search.
+* 'Paid Search' brings in only 3.75% of visitors. This could indicate an area to evaluate in terms of the cost of a paid search vs. the payoff from it.
 
 **Sample Output:**
 
