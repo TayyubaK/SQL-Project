@@ -137,7 +137,7 @@ GROUP BY
 
 **Answer:**
 
-* The average number of products orderd by visitors in each city and country ranges from 1 to 5.50. 
+* The average number of products ordered by visitors in each city and country ranges between 1 to 5.50. 
 
 
 **Sample Output:**
@@ -572,7 +572,7 @@ Query #2
     Note, this results in a revenue $6,092.56 difference between the country-level and city-level analysis. The entire amount belongs to the U.S. but since we cannot assign a city to it, the true total sum and percentage of U.S. city revenue may be understated.
 
 **Answer:**
-* The United States is the biggest market by a wide margin. Revenue from the U.S. makes up 92.11% of total revenue from all countries. The #2 ranked city is Israel accounting for 4.22%.
+* The United States is the biggest market by a wide margin. Revenue from the U.S. makes up 92.11% of total revenue from all countries. The #2 ranked country is Israel accounting for 4.22%.
 * Looking at the city-level revenue, even the #4 ranked city in the U.S. generates 7.42% of revenue, which is slightly higher than the #1 ranked city of Tel Aviv-Yafo, Israel with 7.35%.
 * The U.S. and its cities are very important to the revenue generation on the site. Other markets have yet to grow significantly.
 
