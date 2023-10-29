@@ -4,6 +4,108 @@ What issues will you address by cleaning the data?
 Queries:
 Below, provide the SQL queries you used to clean your data.
 
+
+
+### tmp_clean_cat
+
+Table was created to clean all_sessions.v2productcategory column. The v2productcategory column had many instances of 'Home/' followed by other values. This didn't allow for proper grouping as each value was distinct. 
+
+The temp table takes first (main), second, or third delimited value from the original v2productcategory value as the main_category. This allows for better grouping based on the main_category.
+
+It also retains the unique v2productcategory values that are in all_sessions so that JOINs are possible.
+
+
+Data Issues Remaining:
+
+* Values such as '${escCatTitle}' and '(not set)' were not filtered out as they may have been needed to JOIN with table all_sessions on v2productcategory
+* Some categories are not straight-cut. The delimiter '/' was used but some categories names are messier than others.
+
+    For example, these v2productcategory values have the main_category values: 
+    1. Electronics --> main_category = Electronics
+    1. Accessories --> main_category = Accessories
+    1. Drinkware   --> main_category = Drinkware
+    1. Home/Accessories --> main_category = Accessories
+    1. Home/Accessories/Drinkware --> main_category = Accessories
+    1. Home/Electronics/ --> main_category = Electronics
+    1. Home/Electronics/Accessories/Drinkware --> main_category = Electronics
+
+
+   Should #5 be Accessories or Drinkware? Should #7 be Electronics, Accessories, or Drinkware?
+
+**Sample Output:**
+
+![tmp_clean_cat sample](https://github.com/TayyubaK/SQL-Project/assets/143013434/1afa660e-ed76-4d6b-95ef-fcbf6268de98)
+
+
+```sql
+CREATE TEMP TABLE tmp_clean_cat AS
+SELECT 
+    DISTINCT(v2productcategory), 
+    main_category
+FROM(
+    SELECT 
+        DISTINCT(v2productcategory),
+        split_part(v2productcategory, '/', 1) AS main_category,
+        split_part(v2productcategory, '/', 2) AS second_category,
+        split_part(v2productcategory, '/', 3) AS third_category,
+        split_part(v2productcategory, '/', 4) AS fourth_category
+    FROM all_sessions) cat_split
+WHERE main_category NOT LIKE 'Home%'
+
+UNION
+
+SELECT 
+    DISTINCT(v2productcategory), 
+    second_category
+FROM(
+    SELECT 
+        DISTINCT(v2productcategory),
+        split_part(v2productcategory, '/', 1) AS main_category,
+        NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
+        split_part(v2productcategory, '/', 3) AS third_category,
+        split_part(v2productcategory, '/', 4) AS fourth_category
+    FROM all_sessions) cat_split
+WHERE second_category IS NOT NULL AND second_category NOT IN
+    ('Limited Supply', 'Shop by Brand', 'Brands', 'Nest','Men''s T-Shirts')
+
+UNION
+
+SELECT 
+    DISTINCT(v2productcategory), 
+    second_category
+FROM(
+    SELECT 
+        DISTINCT(v2productcategory),
+        split_part(v2productcategory, '/', 1) AS main_category,
+        NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
+        NULLIF(split_part(v2productcategory, '/', 3),'') AS third_category,
+        split_part(v2productcategory, '/', 4) AS fourth_category
+    FROM all_sessions) cat_split
+WHERE second_category IS NOT NULL
+    AND third_category IS NULL AND second_category IN
+        ('Limited Supply', 'Shop by Brand', 'Brands')
+
+UNION
+
+SELECT 
+    DISTINCT(v2productcategory), 
+    third_category
+FROM(
+    SELECT 
+        DISTINCT(v2productcategory),
+        split_part(v2productcategory, '/', 1) AS main_category,
+        NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
+        NULLIF(split_part(v2productcategory, '/', 3),'') AS third_category,
+        split_part(v2productcategory, '/', 4) AS fourth_category
+    FROM all_sessions) cat_split
+WHERE main_category LIKE 'Home%' AND second_category IN
+    ('Limited Supply', 'Shop by Brand', 'Brands', 'Nest')
+    AND third_category IS NOT NULL
+ORDER BY v2productcategory
+--74 rows affected
+```
+
+
 **Question 1**
 
 **Data cleaning:** 
@@ -20,7 +122,7 @@ In the query:
 * NULL country and city values were removed
 
 **SQL Queries:**
-```postgresql
+```sql
 WITH q1_clean AS (
 	SELECT
 		CASE 
@@ -84,7 +186,7 @@ ORDER BY
     However, in this database there are some obvious issues e.g. New York is listed as city under the United States and Canada. So is Los Angeles.
 
     There are 34 cities that would require a closer look. One-off cleaning isn't the most efficient approach. The best way to correct this would be if there was data available with accurate city and country data for reference.
-```postgresql
+```sql
 WITH city_issues AS (
 	SELECT 
         DISTINCT(city)
@@ -114,7 +216,7 @@ ORDER BY
 **Question 3**
 
 Created a temp table to clean up category names
-```postgresql
+```sql
 CREATE TEMP TABLE tmp_clean_cat AS
 SELECT 
     DISTINCT(v2productcategory), 

@@ -89,6 +89,36 @@ GROUP BY
 --1 row affected; only 'Google Men's Pullover Hoodie Grey' is in the tmp table
 ```
 
+### tmp_clean_cat - QA
+This table was created because v2productcategory had the majority of categories starting with 'home/' which didn't allow for drilling down.
+
+Check that the unique count of v2productcategory values matches between all_sessions and the temp table.
+```sql
+SELECT COUNT(DISTINCT v2productcategory)
+FROM all_sessions
+--Output -> 74
+
+SELECT COUNT(DISTINCT v2productcategory)
+FROM tmp_clean_cat
+--Output -> 74
+
+SELECT COUNT(v2productcategory)
+FROM tmp_clean_cat
+--Output -> 74; temp table has only 1 row for each unique v2productcategory that was in all_sessions
+
+SELECT 
+    DISTINCT v2productcategory
+FROM 
+    tmp_clean_cat
+GROUP BY 
+    v2productcategory
+HAVING 
+    count(DISTINCT(main_category))=1
+ORDER BY v2productcategory
+--74 rows; each v2productcategory has 1 value for main_category (new column unique to the temp table)
+```
+
+
 
 ### Question 1 - QA
 
