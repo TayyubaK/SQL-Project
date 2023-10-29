@@ -1045,6 +1045,166 @@ ORDER BY
 
     (150.15/14281.31)*100 = 1.05 (rounded)
 
+
+* Compare rows and cities in result set to the table
+```sql
+SELECT DISTINCT ON (country, city)
+	COUNT(*)
+FROM 
+    all_sessions
+WHERE (transactions::INT)>0  
+    AND totaltransactionrevenue IS NOT NULL
+	AND city NOT IN ('not available in demo dataset','(not set)')
+GROUP BY 
+    country, 
+    city;
+--20 rows affected
+
+SELECT COUNT(*) FROM (
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+        ELSE city
+        END AS city,
+    SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM 
+        all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country, 
+        city
+    ORDER BY 
+        country, 
+        city, 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    city, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev,
+    DENSE_RANK() OVER (
+        PARTITION BY country
+        ORDER BY totalrev DESC) AS rev_rank
+FROM 
+    q1_clean
+WHERE country <> 'NULL' 
+    AND city <> 'NULL');
+--Output --> 20
+```
+
+* Compare totalrev from all_sessions table to result set
+```sql
+SELECT 
+    city, 
+    ROUND((totaltransactionrevenue::NUMERIC/1000000),2) AS trans_rev
+FROM 
+    all_sessions
+WHERE (transactions::INT)>0  
+    AND totaltransactionrevenue IS NOT NULL
+	AND city NOT IN ('not available in demo dataset','(not set)')
+    AND country='Israel'
+--> Output city=Tel Aviv-Yafo, trans_rev=602.00
+
+SELECT city, totalrev FROM (
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+        ELSE city
+        END AS city,
+    SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM 
+        all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country, 
+        city
+    ORDER BY 
+        country, 
+        city, 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    city, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev,
+    DENSE_RANK() OVER (
+        PARTITION BY country
+        ORDER BY totalrev DESC) AS rev_rank
+FROM 
+    q1_clean
+WHERE country <> 'NULL' 
+    AND city <> 'NULL'
+)
+WHERE country='Israel';
+--Output --> city=Tel Aviv-Yafo, totrev=602.00
+
+```
+
+* Compare sum of totalrev from all_sessions to result set
+```sql
+SELECT 
+    ROUND(SUM(totaltransactionrevenue::NUMERIC/1000000),2) AS trans_rev
+FROM 
+    all_sessions
+WHERE (transactions::INT)>0  
+    AND totaltransactionrevenue IS NOT NULL
+	AND city NOT IN ('not available in demo dataset','(not set)')
+--8188.75
+
+SELECT SUM(totalrev) FROM(
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+        ELSE city
+        END AS city,
+    SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    FROM 
+        all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country, 
+        city
+    ORDER BY 
+        country, 
+        city, 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    city, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev,
+    DENSE_RANK() OVER (
+        PARTITION BY country
+        ORDER BY totalrev DESC) AS rev_rank
+FROM 
+    q1_clean
+WHERE country <> 'NULL' 
+    AND city <> 'NULL'
+)
+--8188.75
+```
+
 ### **starting_with_data - Question 1**
 
 ### **starting_with_data - Question 2**
