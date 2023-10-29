@@ -70,18 +70,43 @@ Being on the site longer does not correspond with greater spending. The visitor 
 **SQL Queries:**
 ```sql
 WITH q7_clean AS (
-    SELECT
+    SELECT DISTINCT ON (fullvisitorid, date(date), pageviews, country, city)
+        fullvisitorid, 
+        date(date), 
+        pageviews, 
+        totaltransactionrevenue, 
+        transactions, 
         CASE 
             WHEN country='(not set)' THEN 'NULL'
             ELSE country
         END AS country,
-        CASE
+        CASE        
             WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
             ELSE city
-        END AS city,
-        COUNT(pageviews) AS count_pageviews
+        END AS city
     FROM 
         all_sessions
+    GROUP BY 
+        fullvisitorid, 
+        date(date), 
+        pageviews, 
+        totaltransactionrevenue, 
+        transactions, 
+        country, 
+        city
+    ORDER BY 
+        fullvisitorid, 
+        date(date)
+),
+clean_cc AS (
+    SELECT 
+        country, 
+        city, 
+        COUNT(pageviews) AS count_pageviews
+    FROM 
+        q7_clean
+    WHERE country <> 'NULL'
+        AND city <> 'NULL'
     GROUP BY 
         country, 
         city
@@ -94,30 +119,29 @@ SELECT
     DENSE_RANK() OVER (
         ORDER BY count_pageviews DESC) AS viewcount_rank
 FROM 
-    q7_clean
-WHERE country <> 'NULL'
-    AND city <> 'NULL'
+    clean_cc
 GROUP BY 
     country, 
     city, 
     count_pageviews
 ORDER BY viewcount_rank ASC;
-
 --282 rows affected.
 ```
 **Assumptions:**
 * Rows where the value of the 'all_sessions.country' column is '(not set)' can be excluded as this information is needed for the purpose of classifying page views.
 * Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset' can be excluded as this information is needed for the purpose of classifying page views.
+* Views is defined as a page was visited. This doesn't consider how many pages were viewed; only considers that a view record was created by a visit. 
 
 **Answer:**
 
 The most views for the site are from U.S. cities. This is generally in-line with where most revenue is generated (see question 5, starting_with_questions.md). 
 
-The ranking differs between transaction revenue and page views. For example, San Franciso, U.S. ranks #1 for revenue but it is ranked #3 for page views. It could be of interesing for further analysis.
+The ranking differs between transaction revenue and page views. For example, San Franciso, U.S. ranks #1 for revenue but it is ranked #3 for page views. It could be of interest for further analysis.
 
 **Sample Output:**
 
-![q7_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/e66548dd-dfa2-420a-b8ce-df35348b9194)
+![q7_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/ea2252d7-8926-4174-978f-4a6dfbc7d30d)
+
 
 ### **Question 3: How did visitors who made transactions hear about the site?**
 

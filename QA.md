@@ -1245,5 +1245,73 @@ ORDER BY
 ```
 
 ### **starting_with_data - Question 2**
+* Compare result set count vs. querying the table
+```sql
+SELECT DISTINCT ON(country, city)
+    country, 
+    city, 
+    pageviews
+FROM 
+all_sessions
+WHERE pageviews IS NOT NULL  
+AND country NOT IN ('(not set)')
+AND city NOT IN ('not available in demo dataset','(not set)')
+--282 rows affected
+
+SELECT COUNT(*) FROM (
+WITH q7_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city,
+        COUNT(pageviews) AS count_pageviews
+    FROM 
+        all_sessions
+    GROUP BY 
+        country, 
+        city
+    ORDER BY count_pageviews DESC
+)
+SELECT 
+    country, 
+    city, 
+    count_pageviews,
+    DENSE_RANK() OVER (
+        ORDER BY count_pageviews DESC) AS viewcount_rank
+FROM 
+    q7_clean
+WHERE country <> 'NULL'
+    AND city <> 'NULL'
+GROUP BY 
+    country, 
+    city, 
+    count_pageviews
+ORDER BY viewcount_rank ASC
+)
+--Output --> 282
+```
+* Manually Check - Compare subset from table results to result set
+```sql
+SELECT DISTINCT ON(country, city)
+    country, 
+    city, 
+    pageviews
+FROM 
+    all_sessions
+WHERE pageviews IS NOT NULL  
+    AND country NOT IN ('(not set)')
+	AND city NOT IN ('not available in demo dataset','(not set)')
+	AND country='Brazil'
+ORDER BY country, city, pageviews DESC
+--4 rows affected. Row#1 is Brazil, Belo Horizonte, 11
+
+
+
+```
 
 ### **starting_with_data - Question 3**
