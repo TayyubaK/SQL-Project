@@ -373,7 +373,8 @@ GROUP BY
     city, 
     totalrev
 ORDER BY 
-    totalrev DESC)
+    totalrev DESC
+)
 --8188.75
 ```
 
@@ -621,7 +622,8 @@ SELECT DISTINCT(main_category), country, city FROM (
             WHERE (transactions::int)=1) ao
         LEFT JOIN tmp_clean_cat ON ao.v2productcategory=tmp_clean_cat.v2productcategory
         WHERE country <> 'NULL'
-            AND city <> 'NULL')
+            AND city <> 'NULL'
+)
 --The query for main group has 56 rows in total. Within those there are 41 distinct main categories for city and country.
 --Visually inspecting the results, main_category='Apparel' has 12 rows for different cities/countries.
 ```
@@ -666,7 +668,8 @@ WITH main_group AS (
     GROUP BY 
         country, 
         city, 
-        main_category)
+        main_category
+)
 WHERE cat_rank=1 --alternate: WHERE cat_rank=2
 	AND main_category='Apparel'
 --10 rows; this indicates 'Apparel is rank #1 in 10 cities
@@ -734,9 +737,162 @@ ORDER BY
 --this summary result set has kept rows from the base subset intact
 ```
 
-
-
 **starting_with_questions - Question 4**
+
+* CTE 'main_group' should only keep results where all_sessions.productquantity>0 and city data is clean.
+```sql
+--How many rows in all_sessions have productquantity greater than 0?
+SELECT 
+    country, 
+    city, 
+    productquantity
+FROM all_sessions 
+WHERE (productquantity::INT)>0  
+--53 rows affected.
+
+--How many of the 53 have country or city values that should be excluded?
+SELECT 
+    country, 
+    city, 
+    productquantity
+FROM all_sessions 
+WHERE (productquantity::INT)>0  
+    AND country IN ('(not set)')
+--0 rows affected
+
+SELECT 
+    country, 
+    city, 
+    productquantity
+FROM all_sessions 
+WHERE (productquantity::INT)>0  
+    AND city IN ('not available in demo dataset','(not set)')
+--21 rows affected
+
+--How many rows result from the  CTE 'main_group' query?
+SELECT COUNT(*) FROM(
+SELECT 
+    DISTINCT ON( 
+        ao.country, 
+        ao.city, 
+        ao.productsku, 
+        ao.v2productcategory, 
+        ao.productquantity)ao.*,
+        tmp_clean_cat.main_category
+FROM (
+    SELECT 
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city, 
+        productsku, 
+        v2productcategory,
+        (productquantity::INT)
+    FROM all_sessions
+    WHERE (productquantity::INT) > 0) ao
+LEFT JOIN tmp_clean_cat 
+    ON ao.v2productcategory=tmp_clean_cat.v2productcategory
+WHERE country <> 'NULL'
+    AND city <> 'NULL'
+)
+--Output --> 32
+--There are 53 rows in all_sessions with a productquantity value greater than 0. 
+--21 of those 53 rows have a value for city that will be 'NULL' and removed.
+--53-21=32; The CTE query correctly filters for rows from all_sessions where productquantity is greater than 0 and 'NULL' city values are removed.
+```
+* CTE 'rank_tbl' should sum up the productquantity values and rank them for each country/city group
+
+```sql
+--How many distinct country/city/productname groupings are there in all_sessions and tmp_all_products with productquanity greater than 0?
+SELECT DISTINCT ON (alls.country, alls.city, tap.v2productname)
+    alls.country,
+    alls.city,
+    tap.v2productname,
+    alls.productquantity
+FROM all_sessions alls
+JOIN tmp_alls_products tap ON alls.productsku=tap.productsku
+WHERE (alls.productquantity::INT)>0  
+    AND alls.city NOT IN ('not available in demo dataset','(not set)')
+--30 rows affected
+
+--How many rows result from the CTE 'rank_tbl' query?
+
+SELECT COUNT(*) FROM (
+WITH main_group AS (
+    SELECT 
+        DISTINCT ON( 
+            ao.country, 
+            ao.city, 
+            ao.productsku, 
+            ao.v2productcategory, 
+            ao.productquantity)ao.*,
+            tmp_clean_cat.main_category
+    FROM (
+        SELECT 
+            CASE 
+                WHEN country='(not set)' THEN 'NULL'
+                ELSE country
+            END AS country,
+            CASE
+                WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+                ELSE city
+            END AS city, 
+            productsku, 
+            v2productcategory,
+            (productquantity::INT)
+        FROM all_sessions
+        WHERE (productquantity::INT) > 0) ao
+    LEFT JOIN tmp_clean_cat 
+        ON ao.v2productcategory=tmp_clean_cat.v2productcategory
+    WHERE country <> 'NULL'
+        AND city <> 'NULL'
+)
+SELECT 
+	country,
+	city,
+	tmp_alls_products.v2productname,
+	SUM(productquantity) AS prod_count,
+	DENSE_RANK() OVER (
+		PARTITION BY country, city 
+		ORDER BY SUM(productquantity) DESC) AS top_prod_rank
+FROM 
+	main_group mg
+LEFT JOIN tmp_alls_products ON mg.productsku=tmp_alls_products.productsku
+GROUP BY 
+	mg.country, 
+	mg.city, 
+	tmp_alls_products.v2productname
+)
+--Output --> 30
+--Agreement between both queries
+WHERE top_prod_rank=1
+--Output --> 22
+```
+* SELECT query gives the final result of product counts ranked #1. Result set has 22 rows. This matches the row count of CTE 'rank_tbl' when the condition 'WHERE top_prod_rank=1' waas added. 
+
+* Manual Check: Final result set indicates a product count of 10 for 'Waze Dress Socks' in Madrid Spain. Confirm using all_sessions and tmp_alls_products:
+```sql
+SELECT DISTINCT ON (alls.country, alls.city, tap.v2productname)
+    alls.country,
+    alls.city,
+    tap.v2productname,
+    alls.productquantity
+FROM all_sessions alls
+JOIN tmp_alls_products tap ON alls.productsku=tap.productsku
+WHERE (alls.productquantity::INT)>0  
+    AND alls.city NOT IN ('not available in demo dataset','(not set)')
+	AND city='Madrid'
+	AND country='Spain'
+--Output -->
+
+-- | country  | city    | v2productname    | productquantity
+-- | Spain    | Madrid  | Waze Dress Socks | 10
+
+```
 
 **starting_with_questions - Question 5**
 
