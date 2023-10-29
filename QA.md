@@ -1,16 +1,28 @@
+### **Risk Areas**
 What are your risk areas? Identify and describe them.
 
+* Columns with blank/near empty, non-conforming, and/or duplicate values, for example:
+        
+    * all_sessions.totaltransactionrevenue has only 81 rows with a value out of 15,134 rows
+    * all_sessions.country has no nulls but some countries are listed as '(not set)'
+    * all_sessions.productsku has duplicates in the column
 
 
-QA Process:
+* All data loaded as character varying data type. Correct data type must be cast for some functions.
+* With CTEs and subqueries each part has to be checked to ensure each piece is working as intended.
+
+### **QA Process**
+
 Describe your QA process and include the SQL queries used to execute it.
+* Compare counts and results from query against individual query results of the table(s)
+* Run query piece-by-piece and evaluate the output
 
-* Identify columns to use, find:
-    * nulls
-    * duplicates
-    * anomalies
+    * All columns appear as expected and with the correct data type
+    * Row counts are reasonable to the change queried
+    * Calculations are accurate
+* Visual inspection, manual calculation/checks
 
-**Question 1**
+### Question 1 - QA
 
 Check counts of country, city, and sum of transaction revenue.
 
@@ -180,3 +192,67 @@ WHERE totaltransactionrevenue IS NOT NULL
 	AND city NOT IN ('(not set)','not available in demo dataset')
 --8188.75
 ```
+
+### Question 2 - QA
+
+Check CTE 'unit_data' query by uncommenting the matching opening and ending queries. The uncommented part stays for all checks.
+* 7 columns queried, and 7 columns in the result set
+* Check 1: All values for transactions should be 1.
+* Check 2: There should be no rows where country is '(not set)' or city is 'not available in demo dataset' or '(not set)'
+* Check 3: There should be no rows where units_sold is NULL
+* Check 4: Check total row count
+* Check 5: Check how many countries were updated to 'NULL'
+* Check 6: Check how many cities were updated to 'NULL'
+
+```sql
+--Check 1: SELECT COUNT(transactions) FROM
+--Check 2: SELECT COUNT(country), COUNT(city) FROM
+--Check 3: SELECT COUNT(units_sold) FROM 
+--Check 4: SELECT COUNT(*) FROM 
+--Check 5: SELECT COUNT(country) FROM
+--Check 6: SELECT COUNT(city) FROM
+(SELECT 
+        DISTINCT ON (
+            alls.totaltransactionrevenue, 
+            alls.transactions, 
+            a.units_sold, 
+            tmp_alls_products.productsku, 
+            tmp_alls_products.v2productname, 
+            alls.country, 
+            alls.city)
+        totaltransactionrevenue, 
+        transactions, 
+        units_sold, 
+        alls.productsku,
+        tmp_alls_products.v2productname,
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city
+    FROM 
+        analytics a
+    JOIN all_sessions alls ON a.fullvisitorid=alls.fullvisitorid
+    JOIN tmp_alls_products ON alls.productsku=tmp_alls_products.productsku
+    WHERE transactions::INT=1
+        AND(totaltransactionrevenue::INT) IS NOT NULL
+        AND (units_sold::INT) IS NOT NULL
+    ORDER BY totaltransactionrevenue DESC)
+--Check 1: WHERE (transactions::INT)=1;
+--Check 2: WHERE country IN ('(not set)') OR city IN ('not available in demo dataset','(not set)');
+--Check 3: WHERE units_sold IS NULL; 
+--Check 4: ---
+--Check 5: WHERE country='NULL'
+--Check 6: WHERE city='NULL'
+
+--Check 1 output -> 39
+--Check 2 output -> 0, 0 
+--Check 3 output -> 0
+--Check 4 output -> 39
+--Check 5 output -> 0
+--Check 6 output -> 11 
+```
+Compare results to querying all_sessions

@@ -93,7 +93,7 @@ WITH unit_data AS(
         totaltransactionrevenue, 
         transactions, 
         units_sold, 
-        alls.productsku,
+        tmp_alls_products.productsku,
         tmp_alls_products.v2productname,
         CASE 
             WHEN country='(not set)' THEN 'NULL'
@@ -107,7 +107,8 @@ WITH unit_data AS(
         analytics a
     JOIN all_sessions alls ON a.fullvisitorid=alls.fullvisitorid
     JOIN tmp_alls_products ON alls.productsku=tmp_alls_products.productsku
-    WHERE transactions::INT=1
+    WHERE (transactions::INT)=1
+        AND(totaltransactionrevenue::INT) IS NOT NULL
         AND (units_sold::INT) IS NOT NULL
     ORDER BY totaltransactionrevenue DESC
 ),
