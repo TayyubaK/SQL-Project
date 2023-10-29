@@ -113,9 +113,11 @@ WITH unit_data AS(
     ORDER BY totaltransactionrevenue DESC
 ),
 q2_clean AS (
-	SELECT * FROM unit_data
+	SELECT * 
+    FROM 
+        unit_data
 	WHERE country <> 'NULL'
-	AND city <> 'NULL'
+	    AND city <> 'NULL'
 )
 SELECT 
     DISTINCT ON (country, city)
