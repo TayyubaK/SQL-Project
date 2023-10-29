@@ -80,8 +80,21 @@ The top 5 cities and countries with the highest level of transaction revenue are
 
 **SQL Queries:**
 ```sql
-WITH q2_clean AS (
-    SELECT
+WITH unit_data AS(
+    SELECT 
+        DISTINCT ON (
+            alls.totaltransactionrevenue, 
+            alls.transactions, 
+            a.units_sold, 
+            tmp_alls_products.productsku, 
+            tmp_alls_products.v2productname, 
+            alls.country, 
+            alls.city)
+        totaltransactionrevenue, 
+        transactions, 
+        units_sold, 
+        alls.productsku,
+        tmp_alls_products.v2productname,
         CASE 
             WHEN country='(not set)' THEN 'NULL'
             ELSE country
@@ -89,61 +102,48 @@ WITH q2_clean AS (
         CASE
             WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
             ELSE city
-        END AS city,
-        AVG(total_ordered::INT) OVER (
-            PARTITION BY country, city) AS avg_total_ordered
+        END AS city
     FROM 
-        all_sessions alls
-    JOIN sales_by_sku sbs ON alls.productsku=sbs.productsku
-    WHERE 
-        (sbs.total_ordered::INT) > 0
-    GROUP BY 
-        country, 
-        city, 
-        total_ordered
+        analytics a
+    JOIN all_sessions alls ON a.fullvisitorid=alls.fullvisitorid
+    JOIN tmp_alls_products ON alls.productsku=tmp_alls_products.productsku
+    WHERE transactions::INT=1
+        AND (units_sold::INT) IS NOT NULL
+    ORDER BY totaltransactionrevenue DESC
+),
+q2_clean AS (
+	SELECT * FROM unit_data
+	WHERE country <> 'NULL'
+	AND city <> 'NULL'
 )
 SELECT 
-    country, 
-    city, 
-    ROUND(MAX(avg_total_ordered),0) AS avg_total_ordered
+    DISTINCT ON (country, city)
+    country,
+	city,
+	ROUND(AVG(units_sold::INT) OVER (
+		PARTITION BY country, city),2) AS avg_total_ordered
 FROM 
     q2_clean
-WHERE country <> 'NULL' AND city <> 'NULL'
 GROUP BY 
     country, 
-    city
-ORDER BY 
-    country;
+    city,
+    units_sold;
 
---206 rows affected.
+--28 rows affected
 ```
 **Assumptions:**
-* Column sales_by_sku.total_ordered represents the number of products ordered
 * Rows where the value of the 'all_sessions.country' column is '(not set)' can be excluded as this information is needed for the purpose of classifying the transaction revenue.
 * Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset' can be excluded as this information is needed for the purpose of classifying transaction revenue.
 
 **Answer:**
 
-The city/country with the highest average number of products ordered, with a value of 319 are:
-1. Brno, Czechia
-1. Riyadh, Saudi Arabia
-
-The city/country with the lowest average number of products ordered, with a value of 1 are:
-1. Rosario, Argentina
-1. Mountain View, Australia
-1. Singapore, France
-1. Villeneuve-d'Ascq
-1. Vilnius, Lithuania
-1. Oslo, Norway
-1. Lahore, Pakistan
-1. Piscataway Township, United States
-1. Kansas City, United States
-1. Greer, United States
+* The average number of products orderd by visitors in each city and country ranges from 1 to 5.50. 
 
 
 **Sample Output:**
 
-![q2_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/e96d7d19-e885-4f92-8979-98dcd4e08088)
+![q2_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/edc98a4d-39da-4801-8340-544283fb38c6)
+
 
 **Data Quality Concerns:**
 * The same all_sessions.city values correspond to different countries. This isn't always an issue, e.g. London is a city in Canada and in the UK.
@@ -406,79 +406,78 @@ WHERE name_rank=1) rank_dup;
 
 --Resulting tmp_alls_products table has 536 rows in total.
 ```
-Use tmp_alls_products and sales_by_sku to answer the question:
+Use tmp_alls_products and all_sessions  tables to answer the question:
 ```sql
-WITH sales_sku AS (
+WITH main_group AS (
     SELECT 
-        sbs.*, 
-        tmp_alls_products.v2productname
-    FROM 
-        sales_by_sku sbs
-    LEFT JOIN tmp_alls_products ON sbs.productsku=tmp_alls_products.productsku
-    WHERE (total_ordered::INT) <> 0
-        AND v2productname IS NOT NULL
-),
-country_city_order AS (
-    SELECT 
-        DISTINCT(ss.productsku),
-        (ss.total_ordered::INT), 
-        ss.v2productname, 
-        CASE 
-            WHEN country='(not set)' THEN 'NULL'
-            ELSE country
-        END AS country,
-        CASE
-            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
-            ELSE city
-        END AS city
-    FROM 
-        sales_sku ss
-    JOIN all_sessions alls ON ss.productsku=alls.productsku 
-    WHERE (alls.transactions::INT)=1
-),
-all_ranked AS (
-    SELECT 
-        country, 
-        city, 
-        productsku, 
-        total_ordered, 
-        v2productname,
-        DENSE_RANK() OVER (
-            PARTITION BY country, city 
-            ORDER BY total_ordered DESC) AS ranking
-    FROM 
-        country_city_order
+        DISTINCT ON( 
+            ao.country, 
+            ao.city, 
+            ao.productsku, 
+            ao.v2productcategory, 
+            ao.productquantity)ao.*,
+            tmp_clean_cat.main_category
+    FROM (
+        SELECT 
+            CASE 
+                WHEN country='(not set)' THEN 'NULL'
+                ELSE country
+            END AS country,
+            CASE
+                WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+                ELSE city
+            END AS city, 
+            productsku, 
+            v2productcategory,
+            (productquantity::INT)
+        FROM all_sessions
+        WHERE (productquantity::INT) > 0) ao
+    LEFT JOIN tmp_clean_cat 
+        ON ao.v2productcategory=tmp_clean_cat.v2productcategory
     WHERE country <> 'NULL'
         AND city <> 'NULL'
-    ORDER BY 
-        country, 
-        city, 
-        total_ordered DESC
+),
+rank_tbl AS (
+    SELECT 
+        country,
+        city,
+        tmp_alls_products.v2productname,
+        SUM(productquantity) AS prod_count,
+        DENSE_RANK() OVER (
+            PARTITION BY country, city 
+            ORDER BY SUM(productquantity) DESC) AS top_prod_rank
+    FROM 
+        main_group mg
+    LEFT JOIN tmp_alls_products ON mg.productsku=tmp_alls_products.productsku
+    GROUP BY 
+        mg.country, 
+        mg.city, 
+        tmp_alls_products.v2productname
 )
-SELECT *
-FROM all_ranked
-WHERE ranking=1
-ORDER BY
-    country, city ASC;
-
---14 rows affected.
+SELECT * 
+FROM 
+    rank_tbl 
+WHERE top_prod_rank=1;
 ```
 
 **Assumptions:**
 
-* productsku is a unique identifier for a product. 
-* One product name can potentially have multiple productsku values as names may overlap, however each productsku should have only 1 name associated with it.
 * Top-selling defined as most quantity ordered
+* Rows where the value of the 'all_sessions.country' column is '(not set)' can be excluded as this information is needed for the purpose of classifying products.
+* Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset' can be excluded as this information is needed for the purpose of classifying products.
 
 **Answer:**
 
+* Nest products appear to be quite popular.
+* Results are in-line with the top categories (question 3): Nest-USA and apparel
+
 **Sample Output:**
 
-![q4_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/fab6045b-dfa0-446e-add2-2eb9ec51fa14)
+![q4_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/5e3b6187-93e5-4561-bc2c-4f55b6b22aa4)
 
 **Data Quality Concerns:**
 
-* Using sales_by_sku table ultimately results in dropping 
+
 
 ### **Question 5: Can we summarize the impact of revenue generated from each city/country?**
 
