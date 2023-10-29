@@ -203,23 +203,12 @@ main_cat_count_tbl AS (
         country, 
         city, 
         main_category
-),
-q3_final AS (
-    SELECT 
-        country, 
-        city, 
-        main_category, 
-        main_cat_count, 
-        cat_rank
-    FROM 
-        main_cat_count_tbl
-    ORDER BY country, city, cat_rank
 )
 SELECT 
     main_category, 
     count(main_category) AS count_rank_1
 FROM 
-    q3_final
+    main_cat_count_tbl
 WHERE 
     cat_rank=1
 GROUP BY 

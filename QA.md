@@ -118,7 +118,7 @@ ORDER BY v2productcategory
 --74 rows; each v2productcategory has 1 value for main_category (new column unique to the temp table)
 ```
 
-### **Main Subset  - Transaction Data and County/City**
+### **Main Subset - Transaction Data and County/City**
 
 As many questions ask to consider orders for city/country, several queries use the same conditions to identify rows with transction data and country/city information.
 
@@ -596,3 +596,33 @@ GROUP BY
 ```
 
 ### Question 3 - QA
+
+* CTE 'main_group' has 56 rows, nulls. This is ok as it lines with 'Main Subset - Transaction Data and County/City' and 'tmp_clean_cat - QA' (see above).
+
+```sql
+SELECT DISTINCT(main_category), country, city FROM (
+    SELECT 
+            DISTINCT ON( ao.country, ao.city, ao.productsku, ao.v2productcategory)ao.*, 
+            tmp_clean_cat.main_category
+        FROM (
+            SELECT 
+                CASE 
+                    WHEN country='(not set)' THEN 'NULL'
+                    ELSE country
+                END AS country,
+                CASE
+                    WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+                    ELSE city
+                END AS city, 
+                productsku, 
+                v2productcategory
+            FROM 
+                all_sessions
+            WHERE (transactions::int)=1) ao
+        LEFT JOIN tmp_clean_cat ON ao.v2productcategory=tmp_clean_cat.v2productcategory
+        WHERE country <> 'NULL'
+            AND city <> 'NULL')
+--The query for main group has 41 distinct main categories for city and country.
+```
+
+* CTE 'main_cat_count_tbl' reduces row count to 41 which meets expectations because it counts and ranks the main_category over country and city.
