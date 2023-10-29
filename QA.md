@@ -213,7 +213,9 @@ SELECT *
 FROM null_check
 WHERE country <> 'NULL'
     AND city <> 'NULL'
---56 rows affected; 81 rows with transaction data, 25 rows of those had cities that would be updated to 'NULL'. 81-25 = 56 so the query correctly removes rows.
+--56 rows affected; 
+--81 rows with transaction data, 25 rows of those had cities that would be updated to 'NULL'. 
+--81-25 = 56 so the query correctly removes rows.
 ```
 
 ### Question 1 - QA
