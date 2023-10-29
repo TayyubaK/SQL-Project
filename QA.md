@@ -1205,6 +1205,12 @@ WHERE country <> 'NULL'
 --8188.75
 ```
 
+* Manual check - For Tel Aviv-Yafo, the result set shows a totalrev=602.00, and sum_totalrev=8188.75. These values have already been QA'd. 
+
+    In the result set the percent_rev=7.35
+
+    (602.00/8188.75)*100 = 7.35 (rounded)
+
 ### **starting_with_data - Question 1**
 
 ### **starting_with_data - Question 2**
