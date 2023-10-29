@@ -106,6 +106,11 @@ ORDER BY v2productcategory
 ```
 
 
+### tmp_alls_products
+
+
+
+
 **Question 1**
 
 **Data cleaning:** 

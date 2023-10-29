@@ -161,82 +161,12 @@ GROUP BY
 
 **SQL Queries:**
 ```sql
-WITH clean_cat AS (
-    SELECT 
-        DISTINCT(v2productcategory), 
-        main_category
-    FROM(
-        SELECT 
-            DISTINCT(v2productcategory),
-            split_part(v2productcategory, '/', 1) AS main_category,
-            split_part(v2productcategory, '/', 2) AS second_category,
-            split_part(v2productcategory, '/', 3) AS third_category,
-            split_part(v2productcategory, '/', 4) AS fourth_category
-        FROM 
-            all_sessions) cat_split
-    WHERE main_category NOT LIKE 'Home%'
+--Using tmp_clean_cat which was created for data cleaning (see cleaningdata.md)
 
-    UNION
-
-    SELECT 
-        DISTINCT(v2productcategory), 
-        second_category
-    FROM(
-        SELECT 
-            DISTINCT(v2productcategory),
-            split_part(v2productcategory, '/', 1) AS main_category,
-            NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
-            split_part(v2productcategory, '/', 3) AS third_category,
-            split_part(v2productcategory, '/', 4) AS fourth_category
-        FROM 
-            all_sessions) cat_split
-    WHERE second_category IS NOT NULL
-        AND second_category NOT IN
-            ('Limited Supply', 'Shop by Brand', 'Brands', 'Nest','Men''s T-Shirts')
-
-    UNION
-
-    SELECT 
-        DISTINCT(v2productcategory), 
-        second_category
-    FROM(
-        SELECT 
-            DISTINCT(v2productcategory),
-            split_part(v2productcategory, '/', 1) AS main_category,
-            NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
-            NULLIF(split_part(v2productcategory, '/', 3),'') AS third_category,
-            split_part(v2productcategory, '/', 4) AS fourth_category
-        FROM 
-            all_sessions) cat_split
-        WHERE second_category IS NOT NULL
-            AND third_category IS NULL
-            AND second_category IN
-                ('Limited Supply', 'Shop by Brand', 'Brands')
-
-    UNION
-
-    SELECT 
-        DISTINCT(v2productcategory), 
-        third_category
-    FROM(
-        SELECT 
-            DISTINCT(v2productcategory),
-            split_part(v2productcategory, '/', 1) AS main_category,
-            NULLIF(split_part(v2productcategory, '/', 2),'') AS second_category,
-            NULLIF(split_part(v2productcategory, '/', 3),'') AS third_category,
-            split_part(v2productcategory, '/', 4) AS fourth_category
-        FROM 
-            all_sessions) cat_split
-        WHERE main_category LIKE 'Home%'
-            AND second_category IN
-                ('Limited Supply', 'Shop by Brand', 'Brands', 'Nest')
-            AND third_category IS NOT NULL
-    ORDER BY v2productcategory
-),
-main_group AS (
+WITH main_group AS (
     SELECT 
         DISTINCT ON( ao.country, ao.city, ao.productsku, ao.v2productcategory)ao.*, 
-        clean_cat.main_category
+        tmp_clean_cat.main_category
     FROM (
         SELECT 
             CASE 
@@ -252,7 +182,7 @@ main_group AS (
         FROM 
             all_sessions
         WHERE (transactions::int)=1) ao
-    LEFT JOIN clean_cat ON ao.v2productcategory=clean_cat.v2productcategory
+    LEFT JOIN tmp_clean_cat ON ao.v2productcategory=tmp_clean_cat.v2productcategory
     WHERE country <> 'NULL'
         AND city <> 'NULL'
 ),
