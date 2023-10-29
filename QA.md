@@ -97,9 +97,9 @@ Check counts of country, city, and sum of transaction revenue.
 **Count of distinct countries in result set should match distinct countries with transaction revenue values.**
 
 Count of unique countries in result set: 5
-```postgresql
+```sql
 SELECT COUNT(DISTINCT country) FROM ( WITH q1_clean AS (
-	SELECT
+    SELECT
 		CASE 
 			WHEN country='(not set)' THEN 'NULL'
 			ELSE country
@@ -134,7 +134,7 @@ ORDER BY
 --5
 ```
 Count of unique countries in all_sessions table with transaction revenue: 5
-```postgresql
+```sql
 SELECT 
     COUNT(DISTINCT country)
 FROM 
@@ -160,7 +160,7 @@ WHERE totaltransactionrevenue IS NOT NULL
 
 Count of unique cities in result set: 19
 
-```postgresql
+```sql
 SELECT COUNT(DISTINCT city) FROM (
 WITH q1_clean AS (
 	SELECT
@@ -199,7 +199,7 @@ ORDER BY
 ```
 Count of unique cities in all_sessions table with transaction revenue: 19
 
-```postgresql
+```sql
 SELECT 
     COUNT(DISTINCT city)
 FROM 
