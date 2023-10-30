@@ -215,10 +215,8 @@ FROM (
 		ORDER BY dup.psku) rank
 WHERE name_rank=1) rank_dup;
 
---Resulting tmp_alls_products table has 536 rows in total.
+--Resulting tmp_alls_products table has 536 rows in total (462+74).
 ```
-
-
 
 ### **starting_with_questions - Question 1**
 
