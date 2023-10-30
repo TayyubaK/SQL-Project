@@ -271,7 +271,7 @@ GROUP BY
     totalrev
 ORDER BY 
     totalrev DESC
-)
+);
 --5
 ```
 Count of unique countries in all_sessions table with transaction revenue: 5
@@ -280,7 +280,7 @@ SELECT
     COUNT(DISTINCT country)
 FROM 
     all_sessions
-WHERE totaltransactionrevenue IS NOT NULL
+WHERE totaltransactionrevenue IS NOT NULL;
 --5
 
 --The Q1 result set excludes '(not set)' values for country. Check that the count of 5 doesn't include '(not set)':
@@ -288,7 +288,7 @@ SELECT
     DISTINCT country
 FROM 
     all_sessions
-WHERE totaltransactionrevenue IS NOT NULL
+WHERE totaltransactionrevenue IS NOT NULL;
 
 --1. Australia
 --2. Canada
@@ -335,7 +335,7 @@ GROUP BY
     totalrev
 ORDER BY 
     totalrev DESC
-)
+);
 --19
 ```
 Count of unique cities in all_sessions table with transaction revenue: 19
@@ -346,7 +346,7 @@ SELECT
 FROM 
     all_sessions
 WHERE totaltransactionrevenue IS NOT NULL 
-    AND city NOT IN ('(not set)','not available in demo dataset')
+    AND city NOT IN ('(not set)','not available in demo dataset');
 --19
 ```
 **Sum of total revenue in result set should match sum of transaction revenue values where county and city aren't '(not set)' and 'not available in demo dataset'.**
@@ -386,7 +386,7 @@ GROUP BY
     totalrev
 ORDER BY 
     totalrev DESC
-)
+);
 --8188.75
 ```
 
@@ -399,7 +399,7 @@ FROM
     all_sessions
 WHERE totaltransactionrevenue IS NOT NULL
     AND country NOT IN ('(not set)','not available in demo dataset')
-    AND city NOT IN ('(not set)','not available in demo dataset')
+    AND city NOT IN ('(not set)','not available in demo dataset');
 --8188.75
 ```
 
