@@ -157,7 +157,7 @@ FROM
 WHERE (transactions::INT) = 1
 GROUP BY 
     channelgrouping
-ORDER BY count_ordering_visitors DESC
+ORDER BY count_ordering_visitors DESC;
 
 --4 rows affected
 ```
@@ -167,7 +167,7 @@ ORDER BY count_ordering_visitors DESC
 * all_sessions.visitid is an identifier for each visit session
 * all_sessions.channelgrouping captures how visitors heard about the site
 * all_sessions.transactions=1 indicates when a transaction has been made
-* 'Paid Search' represents when company pay for links to their site to be suggested first
+* 'Paid Search' represents when a company pay for links to their site to be suggested first
 
 **Answer:**
 
@@ -178,4 +178,3 @@ ORDER BY count_ordering_visitors DESC
 **Sample Output:**
 
 ![q8_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/a483813d-ab93-432a-9cea-c00b47341287)
-
