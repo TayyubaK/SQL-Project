@@ -75,5 +75,5 @@ I also created two temp tables:
     * Create better connections between tables. Many columns interfere with the relationship of other columns. 
     * Create a copy database for more deep cleaning
 * Organize the project files based on questions addressed and cover analysis, data cleaning, question querying, and QA in the same file. Rather than separate files for questions, data cleaning, and QA.
-    * A section to cover analysis results, table reviews, and why certain columns are used 
+    * A section to cover analysis results, table reviews, and why certain columns are used could be insightful.
 * Do more exploratory querying with the 'analytics' and 'products' tables
