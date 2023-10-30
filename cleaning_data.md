@@ -151,7 +151,7 @@ GROUP BY
     dup.psku,
     alls.v2productname
 ORDER BY 
-dup.psku;
+    dup.psku;
 
 --462 rows
 
