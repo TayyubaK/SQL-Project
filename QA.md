@@ -625,10 +625,11 @@ GROUP BY
 
 ### **starting_with_questions - Question 3**
 
-* CTE 'main_group' has 56 rows, no nulls. This is ok as it aligns with 'Main Subset - Transaction Data and County/City' and 'tmp_clean_cat - QA' (see above).
+* **CTE 'main_group'** has 56 rows, no nulls. This is ok as it aligns with 'Main Subset - Transaction Data and Country/City' and 'tmp_clean_cat - QA' (see above).
 
 ```sql
 SELECT DISTINCT(main_category), country, city FROM (
+--CTE 'main_group' query
 SELECT 
     ao.country, 
     ao.city,
@@ -653,13 +654,15 @@ FROM (
 LEFT JOIN tmp_clean_cat ON ao.v2productcategory=tmp_clean_cat.v2productcategory
 WHERE country <> 'NULL'
     AND city <> 'NULL'
-)
---The query for main group has 56 rows in total. 
---Within those there are 41 distinct main categories for city and country.
+);
+--The inner query is for CTE 'main_group' and it has 56 rows in total. 
+
+--Adding the SELECT query for distinct main_category, country, city from 'main_group' reveals that there are 41 distinct main categories for city and country.
 --Visually inspecting the results, main_category='Apparel' has 12 rows for different cities/countries.
 ```
 
-* CTE 'main_cat_count_tbl' reduces row count to 41 which meets expectations because it counts and ranks the main_category over country and city. As seen before, CTE 'main group' had 41 distinct main categories for city and country.
+* **CTE 'main_cat_count_tbl'** reduces row count to 41 which meets expectations because it counts and ranks the main_category over country and city. As seen in query above, CTE 'main group' had 41 distinct main categories for city and country.
+
 ```sql
 --Checking the query for main_cat_count_tbl for cat_rank=1, 2, or 3 and main_category='Apparel'
 SELECT * FROM (
@@ -689,6 +692,7 @@ WITH main_group AS (
     WHERE country <> 'NULL'
         AND city <> 'NULL'
 )
+--this query will become CTE 'main_cat_count_tbl'
     SELECT 
         country, 
         city, 
@@ -705,15 +709,16 @@ WITH main_group AS (
         main_category
 )
 WHERE cat_rank=1 --alternate: WHERE cat_rank=2
-	AND main_category='Apparel'
---10 rows; this indicates 'Apparel is rank #1 in 10 cities
---alternate query has 2 rows; this indicates 'Apparel' is rank #2 in 2 cities
+	AND main_category='Apparel';
+
+--10 rows affected for cat_rank=1; this indicates 'Apparel is rank #1 in 10 cities
+--alternate query 'WHERE cat_rank=2' has 2 rows; this indicates 'Apparel' is rank #2 in 2 cities
 --setting condition for cat_rank=3 has 0 results
 --CTE 'main_group' showed 'Apparel' had 12 rows. 
 --The query for CTE 'main_cat_count_tbl' correctly assigned all 12 rows a rank within their country/city grouping
 ```
 
-* SELECT query filters for #1 ranked categories for each country/city, and counts how many times the rank was #1. The result set shows that 'Apparel' was ranked #1 for ten country/city groups. This summary aligns with the results of the base CTE queries.
+* SELECT query filters for #1 ranked categories for each country/city, and counts how many times the rank was #1. The result set for 'WHERE cat_rank=1' shows that 'Apparel' was ranked #1 for ten country/city groups. This summary aligns with the results of the base CTE queries.
 
     Updating the SELECT query to 'WHERE cat_rank=2' shows 'Apparel' was ranked #2 for 2 country/city groups. The 12 rows have been maintained.
 ```sql
