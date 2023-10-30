@@ -153,7 +153,7 @@ GROUP BY
 **Data Quality Concerns:**
 * The same all_sessions.city values correspond to different countries. This isn't always an issue, e.g. London is a city in Canada and in the UK.
 
-    However, in this database there are some obvious issues. E.g. There's a row where city Singapore is under country France.
+    However, in this database there are some obvious issues. E.g. There's a record where New York is connected to Canada. 
 
     There are 34 cities that would require a closer look. One-off cleaning isn't the most efficient approach. The best way to correct this would be if there was data available with accurate city and country data for reference.
 
@@ -163,7 +163,7 @@ GROUP BY
 
 **SQL Queries:**
 ```sql
---Using tmp_clean_cat which was created for data cleaning (see cleaningdata.md)
+--Using tmp_clean_cat which was created for data cleaning (see code for creating temp table in cleaningdata.md)
 
 WITH main_group AS (
     SELECT 
@@ -222,8 +222,8 @@ ORDER BY
 ```
 **Assumptions:**
 
-* There are no NULL or blank values for the all_sessions.productsku column. There are no NULL or blank values for all_sessions.v2productcategory. Therefore, each row has a productsku and v2productcategory value.
-* all_sessions.v2categoryname cleaned to extract category information past the 'home/'
+* There are no NULL or blank values for the all_sessions.productsku column or all_sessions.v2productcategory (confirmed in table). Therefore, each row has a productsku and v2productcategory value.
+* all_sessions.v2categoryname cleaned to extract category information past the 'Home/'
 
 **Answer:**
 
@@ -231,11 +231,21 @@ Nest-USA and Apparel are the top product categories by a wide margin. They each 
 
 And if the final query is modified to 'WHERE cat_rank=2', Nest-USA and Apparel also rank #2 for 2 other cities/countries.
 
+
+
 **Sample Output:**
 
 ![q3_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/0f12b478-93e8-46b4-bbce-683da0bb97c7)
 
+**Data Quality Concerns:**
 
+* Product categories were cleaned by extracting the category after 'Home/'. However, there are still values that aren't so neatly handled. For example, #3 could be categorized as electronics, accessories, or drinkware. More context/information needed for better cleaning.
+
+    1. Home/Accessories/Drinkware --> main_category = Accessories
+
+    1. Home/Electronics/ --> main_category = Electronics
+
+    1. Home/Electronics/Accessories/Drinkware --> main_category = Electronics  
 
 ### **Question 4: What is the top-selling product from each city/country? Can we find any pattern worthy of noting in the products sold?**
 
