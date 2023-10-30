@@ -76,10 +76,12 @@ FROM
 WHERE 
     productsku='9182593'
 GROUP BY 
-    productsku, v2productname
--- 2 rows affected; 'Google Men's Pullover Hoodie' name had a count of 1, and 'Google Men's Pullover Hoodie Grey' had a count of 3.
+    productsku, v2productname;
+-- 2 rows affected; 
+--'Google Men's Pullover Hoodie' name had a count of 1
+--'Google Men's Pullover Hoodie Grey' had a count of 3
 
---tmp_alls_products should only have the name with the higher count in all_sessions
+--tmp_alls_products should only have the name with the higher count in all_sessions.
 SELECT 
     productsku, 
     v2productname, 
@@ -89,8 +91,9 @@ FROM
 WHERE 
     productsku='9182593'
 GROUP BY 
-    productsku, v2productname
---1 row affected; only 'Google Men's Pullover Hoodie Grey' is in the tmp table
+    productsku, v2productname;
+--1 row affected; 
+--only 'Google Men's Pullover Hoodie Grey' is in the temp table
 ```
 
 ### tmp_clean_cat - QA
