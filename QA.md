@@ -643,7 +643,10 @@ WHERE country <> 'NULL'
 SELECT * FROM (
 WITH main_group AS (
     SELECT 
-        DISTINCT ON( ao.country, ao.city, ao.productsku, ao.v2productcategory)ao.*, 
+        ao.country, 
+        ao.city,
+        ao.productsku,
+        ao.v2productcategory, 
         tmp_clean_cat.main_category
     FROM (
         SELECT 
@@ -694,7 +697,10 @@ WHERE cat_rank=1 --alternate: WHERE cat_rank=2
 ```sql
 WITH main_group AS (
     SELECT 
-        DISTINCT ON( ao.country, ao.city, ao.productsku, ao.v2productcategory)ao.*, 
+        ao.country, 
+        ao.city,
+        ao.productsku,
+        ao.v2productcategory, 
         tmp_clean_cat.main_category
     FROM (
         SELECT 
@@ -782,13 +788,12 @@ WHERE (productquantity::INT)>0
 --How many rows result from the  CTE 'main_group' query?
 SELECT COUNT(*) FROM(
 SELECT 
-    DISTINCT ON( 
-        ao.country, 
-        ao.city, 
-        ao.productsku, 
-        ao.v2productcategory, 
-        ao.productquantity)ao.*,
-        tmp_clean_cat.main_category
+    ao.country, 
+    ao.city, 
+    ao.productsku, 
+    ao.v2productcategory, 
+    ao.productquantity,
+    tmp_clean_cat.main_category
 FROM (
     SELECT 
         CASE 
@@ -835,13 +840,12 @@ WHERE (alls.productquantity::INT)>0
 SELECT COUNT(*) FROM (
 WITH main_group AS (
     SELECT 
-        DISTINCT ON( 
-            ao.country, 
-            ao.city, 
-            ao.productsku, 
-            ao.v2productcategory, 
-            ao.productquantity)ao.*,
-            tmp_clean_cat.main_category
+        ao.country, 
+        ao.city, 
+        ao.productsku, 
+        ao.v2productcategory, 
+        ao.productquantity,
+        tmp_clean_cat.main_category
     FROM (
         SELECT 
             CASE 
@@ -885,7 +889,7 @@ GROUP BY
 WHERE top_prod_rank=1
 --Output --> 22
 ```
-* SELECT query gives the final result of product counts ranked #1. Result set has 22 rows. This matches the row count of CTE 'rank_tbl' when the condition 'WHERE top_prod_rank=1' waas added. 
+* SELECT query gives the final result of product counts ranked #1. Result set has 22 rows. This matches the row count of CTE 'rank_tbl' when the condition 'WHERE top_prod_rank=1' was added. 
 
 * Manual Check: Final result set indicates a product count of 10 for 'Waze Dress Socks' in Madrid Spain. Confirm using all_sessions and tmp_alls_products:
 ```sql

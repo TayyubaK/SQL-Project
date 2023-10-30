@@ -245,13 +245,12 @@ Use tmp_alls_products and all_sessions  tables to answer the question:
 ```sql
 WITH main_group AS (
     SELECT 
-        DISTINCT ON( 
-            ao.country, 
-            ao.city, 
-            ao.productsku, 
-            ao.v2productcategory, 
-            ao.productquantity)ao.*,
-            tmp_clean_cat.main_category
+        ao.country, 
+        ao.city, 
+        ao.productsku, 
+        ao.v2productcategory, 
+        ao.productquantity,
+        tmp_clean_cat.main_category
     FROM (
         SELECT 
             CASE 
@@ -293,6 +292,7 @@ SELECT *
 FROM 
     rank_tbl 
 WHERE top_prod_rank=1;
+--22 rows affected
 ```
 
 **Assumptions:**

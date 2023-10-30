@@ -398,7 +398,6 @@ GROUP BY
 Used tmp_clean_cat (data cleaning for it is described above)
 
 **In CTE 'main_group':**
-
 * CASE expression used to update '(not set)' values for the country column to 'NULL'.
 * CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
 * WHERE conditions
@@ -406,12 +405,6 @@ Used tmp_clean_cat (data cleaning for it is described above)
     * 'NULL' text values are removed for country and city columns (in the outer query)
 
 End result are rows with no blanks and no anomalies for country and city columns. Subsequent queries are not for data cleaning.
-
-
-
-
-
-
 
 ```sql
 WITH main_group AS (
@@ -471,8 +464,68 @@ ORDER BY
 ```
 
 ### **starting_with_questions - Question 4**
+**In CTE 'main_group':**
+* CASE expression used to update '(not set)' values for the country column to 'NULL'.
+* CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
+* productquantity CAST from charactering varying to integer data type and filtered for values greater than 0
 
+* WHERE conditions
+    * transactions column CAST from character varying to integer data type and filtered for value of 1
+    * 'NULL' text values are removed for country and city columns (in the outer query)
 
+End result are rows with no blanks and no anomalies for country and city columns. Subsequent queries are not for data cleaning.
+```sql
+WITH main_group AS (
+    SELECT 
+        DISTINCT ON( 
+            ao.country, 
+            ao.city, 
+            ao.productsku, 
+            ao.v2productcategory, 
+            ao.productquantity)ao.*,
+            tmp_clean_cat.main_category
+    FROM (
+        SELECT 
+            CASE 
+                WHEN country='(not set)' THEN 'NULL'
+                ELSE country
+            END AS country,
+            CASE
+                WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+                ELSE city
+            END AS city, 
+            productsku, 
+            v2productcategory,
+            (productquantity::INT)
+        FROM all_sessions
+        WHERE (productquantity::INT) > 0) ao
+    LEFT JOIN tmp_clean_cat 
+        ON ao.v2productcategory=tmp_clean_cat.v2productcategory
+    WHERE country <> 'NULL'
+        AND city <> 'NULL'
+),
+rank_tbl AS (
+    SELECT 
+        country,
+        city,
+        tmp_alls_products.v2productname,
+        SUM(productquantity) AS prod_count,
+        DENSE_RANK() OVER (
+            PARTITION BY country, city 
+            ORDER BY SUM(productquantity) DESC) AS top_prod_rank
+    FROM 
+        main_group mg
+    LEFT JOIN tmp_alls_products ON mg.productsku=tmp_alls_products.productsku
+    GROUP BY 
+        mg.country, 
+        mg.city, 
+        tmp_alls_products.v2productname
+)
+SELECT * 
+FROM 
+    rank_tbl 
+WHERE top_prod_rank=1;
+```
 
 **starting_with_questions - Question 5**
 
