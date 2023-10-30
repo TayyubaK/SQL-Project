@@ -133,8 +133,7 @@ GROUP BY
     country, 
     city,
     units_sold;
-
---28 rows affected
+--10 rows affected
 ```
 **Assumptions:**
 * Rows where the value of the 'all_sessions.country' column is '(not set)' can be excluded as this information is needed for the purpose of classifying the transaction revenue.

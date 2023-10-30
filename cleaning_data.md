@@ -215,7 +215,7 @@ WHERE name_rank=1) rank_dup;
 
 
 
-**starting_with_questions - Question 1**
+### **starting_with_questions - Question 1**
 
 **Data cleaning:** 
 
@@ -227,7 +227,7 @@ In the q1_clean CTE:
     * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
     * rounded to 2 decimal places since the column represents a dollar value.
 
-In the query:
+In the SELECT query:
 * NULL country and city values were removed
 
 **SQL Queries:**
@@ -274,8 +274,11 @@ FROM
     all_sessions
 ORDER BY 
     country
+--No issues found
 ```
-* The same all_sessions.city values correspond to different countries. This isn't always an issue, e.g. London is a city in Canada and in the UK. 
+* Check city names for issues
+
+    The same all_sessions.city values correspond to different countries. This isn't always an issue, e.g. London is a city in Canada and in the UK. 
 
     However, in this database there are some obvious issues e.g. New York is listed as city under the United States and Canada. So is Los Angeles.
 
@@ -306,7 +309,79 @@ ORDER BY
 --34 rows affected.
 ```
 
-**starting_with_questions - Question 2**
+### **starting_with_questions - Question 2**
+Used tmp_alls_products (data cleaning for it is described above)
+
+In CTE 'unit_data':
+* DISTINCT 
+CASE expression used to update '(not set)' values for the country column to 'NULL'.
+* CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
+* 
+Values for the totaltransactionrevenue column were:
+updated to data type numberic from character varying data type.
+divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
+rounded to 2 decimal places since the column represents a dollar value.
+In the SELECT query:
+
+NULL country and city values were removed
+*
+
+```sql
+WITH unit_data AS(
+    SELECT 
+        DISTINCT ON (
+            alls.totaltransactionrevenue, 
+            alls.transactions, 
+            a.units_sold, 
+            tmp_alls_products.productsku, 
+            tmp_alls_products.v2productname, 
+            alls.country, 
+            alls.city)
+        totaltransactionrevenue, 
+        transactions, 
+        units_sold, 
+        tmp_alls_products.productsku,
+        tmp_alls_products.v2productname,
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city
+    FROM 
+        analytics a
+    JOIN all_sessions alls ON a.fullvisitorid=alls.fullvisitorid
+    JOIN tmp_alls_products ON alls.productsku=tmp_alls_products.productsku
+    WHERE (transactions::INT)=1
+        AND(totaltransactionrevenue::INT) IS NOT NULL
+        AND (units_sold::INT) IS NOT NULL
+    ORDER BY totaltransactionrevenue DESC
+),
+q2_clean AS (
+	SELECT * 
+    FROM 
+        unit_data
+	WHERE country <> 'NULL'
+	    AND city <> 'NULL'
+)
+SELECT 
+    DISTINCT ON (country, city)
+    country,
+	city,
+	ROUND(AVG(units_sold::INT) OVER (
+		PARTITION BY country, city),2) AS avg_total_ordered
+FROM 
+    q2_clean
+GROUP BY 
+    country, 
+    city,
+    units_sold;
+
+--28 rows affected
+```
+
 
 **starting_with_questions - Question 3**
 
