@@ -28,6 +28,8 @@ General Approach:
 ### **tmp_alls_products - QA**
 This temp table was needed because all_sessions.productsku (unique identifier for a product) had more than 1 name associated with it.
 
+Code for creating the temp table is in cleaning_data.md.
+
 Check that the unique count of productsku values matches between all_sessions and the temp table.
 ```sql
 SELECT COUNT(DISTINCT productsku)
@@ -98,6 +100,8 @@ GROUP BY
 
 ### **tmp_clean_cat - QA**
 This table was created because all_sessions.v2productcategory had the majority of categories starting with 'Home/', which didn't allow for drilling down.
+
+Code for creating the temp table is in cleaning_data.md.
 
 Check that the unique count of v2productcategory values matches between all_sessions and the temp table.
 ```sql

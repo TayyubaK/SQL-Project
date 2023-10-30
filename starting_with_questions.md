@@ -71,16 +71,16 @@ The top 5 cities and countries with the highest level of transaction revenue are
 
     However, in this database there are some obvious issues e.g. New York is listed as city under the United States and Canada. So is Los Angeles.
     
-    There are 34 cities that would require a closer look. One-off cleaning isn't the most efficient approach. The best way to correct this would be if there was data available with accurate city and country data for reference.
+    There are 34 cities that would require a closer look. One-off cleaning isn't the most efficient approach. The best way to correct this would be if there was a source table available with accurate city and country data for reference.
 
-* The all_sessions table has 15,134 rows. Filtering down to rows with transaction revenue leaves 81 rows. Filtering down further to remove country and city values that are not proper names leaves 56 rows.
+* The all_sessions table has 15,134 rows. Filtering down to rows with transaction revenue leaves 81 rows. Filtering down further to remove country and city values with anomalies leaves 56 rows. Results are for a limited subset.
 
 ### **Question 2: What is the average number of products ordered from visitors in each city and country?**
 
 
 **SQL Queries:**
 ```sql
---Using tmp_alls_products which was created for data cleaning (see cleaningdata.md)
+--Using tmp_alls_products which was created for data cleaning (see code cleaningdata.md)
 
 WITH unit_data AS(
     SELECT 
