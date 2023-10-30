@@ -395,9 +395,10 @@ FROM
 GROUP BY 
     country, 
     city,
+    v2productname,
     units_sold;
 
---28 rows affected
+--10 rows affected
 ```
 ### **starting_with_questions - Question 3**
 Used tmp_clean_cat (data cleaning for it is described above)

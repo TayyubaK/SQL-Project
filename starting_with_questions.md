@@ -80,7 +80,7 @@ The top 5 cities and countries with the highest level of transaction revenue are
 
 **SQL Queries:**
 ```sql
---Using tmp_alls_products which was created for data cleaning (see code cleaningdata.md)
+--Using tmp_alls_products which was created for data cleaning (see code for creating temp table in cleaningdata.md)
 
 WITH unit_data AS(
     SELECT 
@@ -132,6 +132,7 @@ FROM
 GROUP BY 
     country, 
     city,
+    v2productname,
     units_sold;
 --10 rows affected
 ```
