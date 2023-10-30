@@ -254,6 +254,9 @@ And if the final query is modified to 'WHERE cat_rank=2', Nest-USA and Apparel a
 
 Use tmp_alls_products and all_sessions  tables to answer the question:
 ```sql
+--Using tmp_alls_products which was created for data cleaning (see code for creating temp table in cleaningdata.md)
+--Using tmp_clean_cat which was created for data cleaning (see code for creating temp table in cleaningdata.md)
+
 WITH main_group AS (
     SELECT 
         ao.country, 
@@ -320,9 +323,6 @@ WHERE top_prod_rank=1;
 **Sample Output:**
 
 ![q4_ans](https://github.com/TayyubaK/SQL-Project/assets/143013434/5e3b6187-93e5-4561-bc2c-4f55b6b22aa4)
-
-**Data Quality Concerns:**
-
 
 
 ### **Question 5: Can we summarize the impact of revenue generated from each city/country?**
@@ -407,13 +407,14 @@ WHERE country <> 'NULL'
 **Assumptions:**
 * Column 'all_sessions.totaltransactionrevenue' represents the dollar value of a completed transaction.
 
+
 Query #1
 * Rows where the value of the 'all_sessions.country' column is '(not set)' can be excluded as this information is needed for the purpose of classifying the transaction revenue.
-* Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset' can **_included_** in the results as the purpose of query #1 is to look at the country-level. 
+* Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset' can be  **_included_** in the results as the purpose of query #1 is to look at the country-level, not city-level. 
 
 Query #2
 * Rows where the value of the 'all_sessions.country' column is '(not set)' can be excluded as this information is needed for the purpose of classifying the transaction revenue.
-* Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset' can be **_excluded_** as this information is needed for the purpose of classifying transaction revenue. 
+* Rows where the values of the 'all_sessions.city' column are '(not set)' or 'not available in demo dataset'  must be **_excluded_** as this information is needed for the purpose of classifying transaction revenue. 
 
     Note, this results in a revenue $6,092.56 difference between the country-level and city-level analysis. The entire amount belongs to the U.S. but since we cannot assign a city to it, the true total sum and percentage of U.S. city revenue may be understated.
 
