@@ -118,7 +118,7 @@ ORDER BY v2productcategory
 --74 rows; each v2productcategory has 1 value for main_category (new column unique to the temp table)
 ```
 
-### **Main Subset - Transaction Data and County/City**
+### **Main Subset - Transaction Data and Country/City**
 
 As many questions ask to consider orders for city/country, several queries use the same conditions to identify rows with transction data and country/city information.
 
