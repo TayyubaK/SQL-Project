@@ -920,7 +920,7 @@ WITH q1_clean AS (
             WHEN country='(not set)' THEN 'NULL'
             ELSE country
         END AS country,
-        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+        SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
     FROM all_sessions
     WHERE totaltransactionrevenue IS NOT NULL
     GROUP BY 
@@ -988,7 +988,7 @@ WITH q1_clean AS (
             WHEN country='(not set)' THEN 'NULL'
             ELSE country
         END AS country,
-        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+        SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
     FROM all_sessions
     WHERE totaltransactionrevenue IS NOT NULL
     GROUP BY 
@@ -1033,7 +1033,7 @@ WITH q1_clean AS (
             WHEN country='(not set)' THEN 'NULL'
             ELSE country
         END AS country,
-        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+        SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
     FROM all_sessions
     WHERE totaltransactionrevenue IS NOT NULL
     GROUP BY 
@@ -1090,7 +1090,7 @@ WITH q1_clean AS (
             WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
         ELSE city
         END AS city,
-    SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
     FROM 
         all_sessions
     WHERE totaltransactionrevenue IS NOT NULL
@@ -1143,7 +1143,7 @@ WITH q1_clean AS (
             WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
         ELSE city
         END AS city,
-    SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
     FROM 
         all_sessions
     WHERE totaltransactionrevenue IS NOT NULL
@@ -1196,7 +1196,7 @@ WITH q1_clean AS (
             WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
         ELSE city
         END AS city,
-    SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+    SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
     FROM 
         all_sessions
     WHERE totaltransactionrevenue IS NOT NULL
@@ -1237,7 +1237,7 @@ WHERE country <> 'NULL'
 SELECT 
     DISTINCT fullvisitorid, 
 	MAKE_INTERVAL(secs => (timeonsite::integer)) AS timeonsite,
-	 ROUND((totaltransactionrevenue::numeric)/1000000, 2) AS trans_rev
+	 ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev
 FROM 
     all_sessions
 WHERE (transactions::INT) = 1
@@ -1253,7 +1253,7 @@ ORDER BY
 SELECT 
     DISTINCT fullvisitorid, 
 	MAKE_INTERVAL(secs => (timeonsite::integer)) AS timeonsite,
-	 ROUND((totaltransactionrevenue::numeric)/1000000, 2) AS trans_rev
+	 ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev
 FROM 
     all_sessions
 WHERE (transactions::INT) = 1

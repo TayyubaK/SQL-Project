@@ -221,7 +221,7 @@ WHERE name_rank=1) rank_dup;
 * CASE expression used to update '(not set)' values for the country column to 'NULL'.
 * CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
 * Values for the totaltransactionrevenue column were: 
-    * updated to data type numberic from character varying data type.
+    * updated to data type numeric from character varying data type.
     * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
     * rounded to 2 decimal places since the column represents a dollar value.
 
@@ -477,13 +477,12 @@ End result are rows with no blanks and no anomalies for country and city columns
 ```sql
 WITH main_group AS (
     SELECT 
-        DISTINCT ON( 
-            ao.country, 
-            ao.city, 
-            ao.productsku, 
-            ao.v2productcategory, 
-            ao.productquantity)ao.*,
-            tmp_clean_cat.main_category
+        ao.country, 
+        ao.city, 
+        ao.productsku, 
+        ao.v2productcategory, 
+        ao.productquantity,
+        tmp_clean_cat.main_category
     FROM (
         SELECT 
             CASE 
@@ -527,7 +526,56 @@ FROM
 WHERE top_prod_rank=1;
 ```
 
-**starting_with_questions - Question 5**
+### **starting_with_questions - Question 5**
+**Query #1:**
+
+In CTE 'q1_clean':
+* CASE expression used to update '(not set)' values for the country column to 'NULL'.
+* Values for the totaltransactionrevenue column were:
+    * updated to data type numeric from character varying data type
+    * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
+    * rounded to 2 decimal places since the column represents a dollar value.
+    * WHERE condition used to remove empty/null values
+
+End result is a dataset with no empty values
+
+In SELECT query:
+* 'NULL' text values removed for country
+
+
+```sql
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        SUM(ROUND((totaltransactionrevenue::NUMERIC )/1000000,2)) AS totalrev
+    FROM all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country
+    ORDER BY 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev
+FROM 
+    q1_clean
+WHERE country <> 'NULL'
+GROUP BY 
+    country, 
+    totalrev
+ORDER BY 
+    totalrev DESC;
+
+--5 rows affected
+```
+
+**Query #2:**
 
 **starting_with_data - Question 1**
 
