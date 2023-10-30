@@ -1266,7 +1266,7 @@ WHERE country <> 'NULL'
     (602.00/8188.75)*100 = 7.35 (rounded)
 
 ### **starting_with_data - Question 1**
-* Query #1 - Review full output
+* Query #1 - Manual check; review full output result set
 ```sql
 SELECT 
     DISTINCT fullvisitorid, 
@@ -1276,7 +1276,7 @@ FROM
     all_sessions
 WHERE (transactions::INT) = 1
 ORDER BY 
-    timeonsite
+    timeonsite;
 --80 rows affected
 --Row #1 shows timeonsite=00:01:23, transrev=200.00 (this matches calculated max and revenue for that transaction)
 --Row #80 shows timeonsite=00:31:00, transrev=61.97 (this matches calculated max and revenue for that transaction)
@@ -1292,7 +1292,7 @@ FROM
     all_sessions
 WHERE (transactions::INT) = 1
 ORDER BY 
-    trans_rev
+    trans_rev;
 --80 rows affected
 --Rows 76-80 match query #2 result set for highest transaction revenues
 --Rows 1-5 match query #3 result set for lowest transaction revneues
