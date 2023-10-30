@@ -25,23 +25,24 @@ General Approach:
     * Calculations are accurate
 * Visual inspection, manual calculation/checks, reviewing subsets of the final answer
 
-### tmp_alls_products - QA
+### **tmp_alls_products - QA**
 This temp table was needed because all_sessions.productsku (unique identifier for a product) had more than 1 name associated with it.
 
 Check that the unique count of productsku values matches between all_sessions and the temp table.
 ```sql
 SELECT COUNT(DISTINCT productsku)
-FROM all_sessions
+FROM all_sessions;
 --Output -> 536
 
 SELECT COUNT(DISTINCT productsku)
-FROM tmp_alls_products
+FROM tmp_alls_products;
 --Output -> 536
 
 SELECT COUNT(productsku)
-FROM tmp_alls_products
+FROM tmp_alls_products;
 --Output -> 536; temp table has only 1 row for each productsku
-
+```
+```sql
 SELECT 
     DISTINCT productsku
 FROM 
@@ -50,8 +51,8 @@ GROUP BY
     productsku
 HAVING 
     count(DISTINCT(v2productname))>1
-ORDER BY productsku
---74 rows; all_sessions had 74 productsku values with different v2productname values
+ORDER BY productsku;
+--74 rows affected; all_sessions had 74 productsku values with different v2productname values
 
 SELECT 
     DISTINCT productsku
@@ -61,7 +62,7 @@ GROUP BY
     productsku
 HAVING 
     count(DISTINCT(v2productname))>1
-ORDER BY productsku
+ORDER BY productsku;
 --0 rows; all productsku and v2productname values have a 1:1 relationship in the temp table
 ```
 Manually check a value - productsku='9182593'
