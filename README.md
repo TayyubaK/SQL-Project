@@ -49,7 +49,12 @@ The site sells a wide varierty of products from electronics, to apparel, to offi
     * several nearly empty columns (e.g. productrefundamount) 
 
 * analytics (14 columns, 4,301,122 rows)
-    *  
+    * information about unique visitors, their visit date time, page views.
+    * some columns have no nulls 
+* products (7 columns, 1,092 rows)
+    * 
+* sales_by_sku (2 columns, 462 rows)
+* sales_report (8 columns, 454 rows)
 
 ## Challenges 
 * Many columns were not clear on the basis of their names and data alone. A SME would have been helpful or some additional context about the source of the data.
