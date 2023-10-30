@@ -1,5 +1,4 @@
 ### **Risk Areas**
-What are your risk areas? Identify and describe them.
 The major risk areas are blanks, duplicates, data anomalies and data types.
 * Columns with blank/near empty, non-conforming, and/or duplicate values, for example:
         
