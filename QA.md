@@ -1466,7 +1466,7 @@ AND city='Bengaluru';
 SELECT 
     COUNT(DISTINCT fullvisitorid)
 FROM all_sessions
-WHERE (transactions::INT)=1
+WHERE (transactions::INT)=1;
 --Output --> 80
 ```
 ```sql
@@ -1481,8 +1481,8 @@ FROM
 WHERE (transactions::INT) = 1
 GROUP BY 
     channelgrouping
-ORDER BY count_ordering_visitors DESC))
---Output --> 80 (4 rows of the same because of query structure)
+ORDER BY count_ordering_visitors DESC));
+--Output --> 80 (4 rows of the same result because of query structure)
 ```
 * Check count of each channel if it was individually queried.
 ```sql
@@ -1502,7 +1502,7 @@ SELECT
     (SELECT COUNT(DISTINCT fullvisitorid) AS count_psearch_grp
         FROM all_sessions
     WHERE (transactions::INT)=1
-    AND channelgrouping='Paid Search')
+    AND channelgrouping='Paid Search');
 -- Output -->
 -- count_ref_grp = 32 --> ((32/80)*100)=40
 -- count_dir_grp = 23
@@ -1524,6 +1524,6 @@ FROM
 WHERE (transactions::INT) = 1
 GROUP BY 
     channelgrouping
-ORDER BY count_ordering_visitors DESC))
+ORDER BY count_ordering_visitors DESC));
 --Output --> 100.00
 ```
