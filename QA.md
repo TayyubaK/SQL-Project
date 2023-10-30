@@ -1309,7 +1309,7 @@ FROM
 all_sessions
 WHERE pageviews IS NOT NULL  
 AND country NOT IN ('(not set)')
-AND city NOT IN ('not available in demo dataset','(not set)')
+AND city NOT IN ('not available in demo dataset','(not set)');
 --282 rows affected
 ```
 ```sql
@@ -1370,7 +1370,7 @@ GROUP BY
     city, 
     count_pageviews
 ORDER BY viewcount_rank ASC
-)
+);
 --Output --> 282
 ```
 * Compare subset from table results to result set
@@ -1456,7 +1456,7 @@ GROUP BY
 ORDER BY viewcount_rank ASC
 )
 WHERE country='India'
-AND city='Bengaluru'
+AND city='Bengaluru';
 --1 row affected. country=India, city=Bengaluru, count_pageviews=72, viewcount_rank=13
 ```
 
