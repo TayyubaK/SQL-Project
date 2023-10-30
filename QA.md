@@ -782,7 +782,7 @@ ORDER BY
 
 ### **starting_with_questions - Question 4**
 
-* CTE 'main_group' should only keep results where all_sessions.productquantity>0 and city data is clean.
+* **CTE 'main_group'** should only keep results where all_sessions.productquantity>0 and city data is clean.
 ```sql
 --How many rows in all_sessions have productquantity greater than 0?
 SELECT 
@@ -790,9 +790,10 @@ SELECT
     city, 
     productquantity
 FROM all_sessions 
-WHERE (productquantity::INT)>0  
+WHERE (productquantity::INT)>0 ; 
 --53 rows affected.
-
+```
+```sql
 --How many of the 53 have country or city values that should be excluded?
 SELECT 
     country, 
@@ -800,8 +801,8 @@ SELECT
     productquantity
 FROM all_sessions 
 WHERE (productquantity::INT)>0  
-    AND country IN ('(not set)')
---0 rows affected
+    AND country IN ('(not set)');
+--0 rows affected for country
 
 SELECT 
     country, 
@@ -809,9 +810,10 @@ SELECT
     productquantity
 FROM all_sessions 
 WHERE (productquantity::INT)>0  
-    AND city IN ('not available in demo dataset','(not set)')
---21 rows affected
-
+    AND city IN ('not available in demo dataset','(not set)');
+--21 rows affected for city
+````
+```sql
 --How many rows result from the  CTE 'main_group' query?
 SELECT COUNT(*) FROM(
 SELECT 
@@ -840,16 +842,16 @@ LEFT JOIN tmp_clean_cat
     ON ao.v2productcategory=tmp_clean_cat.v2productcategory
 WHERE country <> 'NULL'
     AND city <> 'NULL'
-)
+);
 --Output --> 32
 --There are 53 rows in all_sessions with a productquantity value greater than 0. 
 --21 of those 53 rows have a value for city that will be 'NULL' and removed.
 --53-21=32; The CTE query correctly filters for rows from all_sessions where productquantity is greater than 0 and 'NULL' city values are removed.
 ```
-* CTE 'rank_tbl' should sum up the productquantity values and rank them for each country/city group
+* **CTE 'rank_tbl'** should sum up the productquantity values and rank them for each country/city group
 
 ```sql
---How many distinct country/city/productname groupings are there in all_sessions and tmp_all_products with productquanity greater than 0?
+--How many distinct country/city/productname groupings are there in all_sessions and tmp_all_products, with productquanity greater than 0?
 SELECT DISTINCT ON (alls.country, alls.city, tap.v2productname)
     alls.country,
     alls.city,
@@ -858,7 +860,7 @@ SELECT DISTINCT ON (alls.country, alls.city, tap.v2productname)
 FROM all_sessions alls
 JOIN tmp_alls_products tap ON alls.productsku=tap.productsku
 WHERE (alls.productquantity::INT)>0  
-    AND alls.city NOT IN ('not available in demo dataset','(not set)')
+    AND alls.city NOT IN ('not available in demo dataset','(not set)');
 --30 rows affected
 ```
 ```sql
@@ -893,6 +895,7 @@ WITH main_group AS (
     WHERE country <> 'NULL'
         AND city <> 'NULL'
 )
+--this query will become CTE 'rank_tbl'
 SELECT 
 	country,
 	city,
@@ -909,11 +912,11 @@ GROUP BY
 	mg.city, 
 	tmp_alls_products.v2productname
 )
---Output without any WHERE condition --> 30
+--Output without any outer SELECT/WHERE condition --> 30
 --Agreement between both queries
 
---Add in the WHERE condition at the end and that's why the result set output is 22
-WHERE top_prod_rank=1
+--Add in the outer SELECT/WHERE condition. Final result set should reduce to 22 when rank condition is added.
+WHERE top_prod_rank=1;
 --Output --> 22
 ```
 * SELECT query gives the final result of product counts ranked #1. Result set has 22 rows. This matches the row count of CTE 'rank_tbl' when the condition 'WHERE top_prod_rank=1' was added. 
@@ -930,7 +933,7 @@ JOIN tmp_alls_products tap ON alls.productsku=tap.productsku
 WHERE (alls.productquantity::INT)>0  
     AND alls.city NOT IN ('not available in demo dataset','(not set)')
 	AND city='Madrid'
-	AND country='Spain'
+	AND country='Spain';
 --Output -->
 -- | country  | city    | v2productname    | productquantity
 -- | Spain    | Madrid  | Waze Dress Socks | 10
