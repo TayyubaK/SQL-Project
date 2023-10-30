@@ -77,3 +77,4 @@ I also created two temp tables:
 * Organize the project files based on questions addressed and cover analysis, data cleaning, question querying, and QA in the same file. Rather than separate files for questions, data cleaning, and QA.
     * A section to cover analysis results, table reviews, and why certain columns are used could be insightful.
 * Do more exploratory querying with the 'analytics' and 'products' tables
+* Re-do QA approach by using temp tables to store question result sets. Then QA queries can performed using the temp tables. It would make the QA.md file shorter. 
