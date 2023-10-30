@@ -18,9 +18,9 @@ Describe your QA process and include the SQL queries used to execute it.
 * Run query piece-by-piece and evaluate the output
 
     * All columns appear as expected and with the correct data type
-    * Row counts are reasonable and match to the change queried
+    * Row counts are reasonable and changes in each step match expectations
     * Calculations are accurate
-* Visual inspection, manual calculation/checks
+* Visual inspection, manual calculation/checks, reviewing subsets of the final answer
 
 ### tmp_alls_products - QA
 This temp table was needed because all_sessions.productsku (unique identifier for a product) had more than 1 name associated with it.
