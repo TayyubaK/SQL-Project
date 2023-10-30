@@ -13,7 +13,7 @@ The goals of the project were:
         * cleaning_data.md 
     * extract necessary information from the tables 
         * starting_with_questions.md
-        * starting_with _data.md
+        * starting_with_data.md
     * QA queries and the result set
         * QA.md
 
