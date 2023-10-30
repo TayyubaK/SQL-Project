@@ -1,5 +1,5 @@
 ### **Issues to Address**
-* Data clean columns to be used in queries. Address:
+* Clean columns to address:
     * nulls
     * duplicates
     * anomalies
