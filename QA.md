@@ -941,7 +941,9 @@ WHERE (alls.productquantity::INT)>0
 ```
 
 ### **starting_with_questions - Question 5**
-* Compare rows and countries in result set to the table
+
+**Query #1 QA - Country-Level**
+* Compare rows and countries in result set to the tables
 ```sql
 SELECT country FROM(
 WITH q1_clean AS (
@@ -971,7 +973,7 @@ GROUP BY
     totalrev
 ORDER BY 
     totalrev DESC
-)
+);
 --5 rows affected; 
 --1. United States
 --2. Israel
@@ -985,13 +987,13 @@ SELECT
 FROM all_sessions
 WHERE (transactions::INT)>0  
     AND totaltransactionrevenue IS NOT NULL
-	AND country NOT IN ('not available in demo dataset','(not set)')
+	AND country NOT IN ('not available in demo dataset','(not set)');
 --5 rows affected; 
---1. AustraliaUnited States
---2. CanadaIsrael
+--1. Australia
+--2. Canada
 --3. Israel
---4. SwitzerlandCanada
---5. United StatesSwitzerland
+--4. Switzerland
+--5. United States
 ```
 
 * Compare totalrev from all_sessions table to result set
@@ -1007,7 +1009,7 @@ WHERE (transactions::INT)>0
 	AND country NOT IN ('not available in demo dataset','(not set)')
     AND country='Canada'
 ORDER BY 
-    country
+    country;
 --2 rows affected. trans_rev values are 67.99 and 82.16. Their sum is 150.15
 ```
 ```sql
@@ -1040,7 +1042,7 @@ GROUP BY
 ORDER BY 
     totalrev DESC
 )
-WHERE country='Canada'
+WHERE country='Canada';
 --1 row affected; shows Canada and totalrev of 150.15
 ```
 
@@ -1052,7 +1054,7 @@ FROM
     all_sessions
 WHERE (transactions::INT)>0  
     AND totaltransactionrevenue IS NOT NULL
-	AND country NOT IN ('not available in demo dataset','(not set)')
+	AND country NOT IN ('not available in demo dataset','(not set)');
 --14281.31
 ```
 ```sql
@@ -1084,7 +1086,7 @@ GROUP BY
     totalrev
 ORDER BY 
     totalrev DESC
-)
+);
 --14281.31
 ```
 * Manual check - For Canada, the result set shows a totalrev=150.15, and sum_totalrev=14281.31. These values have already been QA'd. 
@@ -1093,6 +1095,7 @@ ORDER BY
 
     (150.15/14281.31)*100 = 1.05 (rounded)
 
+**Query #2 QA - City-Level**
 
 * Compare rows and cities in result set to the table
 ```sql
@@ -1106,7 +1109,7 @@ WHERE (transactions::INT)>0
 GROUP BY 
     country, 
     city;
---20 rows affected
+--20 rows affected.
 ```
 ```sql
 SELECT COUNT(*) FROM (
@@ -1148,6 +1151,7 @@ WHERE country <> 'NULL'
 --Output --> 20
 ```
 
+Manual Check - focus on 1 city in Israel
 * Compare totalrev from all_sessions table to result set
 ```sql
 SELECT 
@@ -1158,7 +1162,7 @@ FROM
 WHERE (transactions::INT)>0  
     AND totaltransactionrevenue IS NOT NULL
 	AND city NOT IN ('not available in demo dataset','(not set)')
-    AND country='Israel'
+    AND country='Israel';
 --> Output city=Tel Aviv-Yafo, trans_rev=602.00
 ```
 ```sql
@@ -1211,7 +1215,7 @@ FROM
     all_sessions
 WHERE (transactions::INT)>0  
     AND totaltransactionrevenue IS NOT NULL
-	AND city NOT IN ('not available in demo dataset','(not set)')
+	AND city NOT IN ('not available in demo dataset','(not set)');
 --8188.75
 ```
 ```sql
@@ -1251,11 +1255,11 @@ FROM
     q1_clean
 WHERE country <> 'NULL' 
     AND city <> 'NULL'
-)
+);
 --8188.75
 ```
 
-* Manual check - For Tel Aviv-Yafo, the result set shows a totalrev=602.00, and sum_totalrev=8188.75. These values have already been QA'd. 
+* Manual check of percentage - For Tel Aviv-Yafo, the result set shows a totalrev=602.00, and sum_totalrev=8188.75. These values have already been QA'd. 
 
     In the result set the percent_rev=7.35
 
