@@ -357,7 +357,7 @@ WITH q1_clean AS (
             WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
             ELSE city
         END AS city,
-        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+        SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
     FROM 
         all_sessions
     WHERE 
@@ -1236,7 +1236,7 @@ WHERE country <> 'NULL'
 ```sql
 SELECT 
     DISTINCT fullvisitorid, 
-	MAKE_INTERVAL(secs => (timeonsite::integer)) AS timeonsite,
+	MAKE_INTERVAL(secs => (timeonsite::INT)) AS timeonsite,
 	 ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev
 FROM 
     all_sessions
@@ -1252,7 +1252,7 @@ ORDER BY
 ```sql
 SELECT 
     DISTINCT fullvisitorid, 
-	MAKE_INTERVAL(secs => (timeonsite::integer)) AS timeonsite,
+	MAKE_INTERVAL(secs => (timeonsite::INT)) AS timeonsite,
 	 ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev
 FROM 
     all_sessions

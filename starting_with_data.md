@@ -7,8 +7,8 @@ Query #1 - Max time and how much was spent for that time, min time and how much 
 WITH time_to_trans AS (
     SELECT 
         DISTINCT(fullvisitorid), 
-        ROUND((totaltransactionrevenue::numeric)/1000000, 2) AS trans_rev,
-        MAKE_INTERVAL(secs => (timeonsite::integer)) AS timeonsite
+        ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev,
+        MAKE_INTERVAL(secs => (timeonsite::INT)) AS timeonsite
     FROM 
         all_sessions
     WHERE (transactions::INT) = 1
@@ -28,8 +28,8 @@ Query #2 - Time on site for the 5 highest revenue transactions
 ```sql
 SELECT 
     DISTINCT(fullvisitorid), 
-    ROUND((totaltransactionrevenue::numeric)/1000000, 2) AS trans_rev,
-    MAKE_INTERVAL(secs => (timeonsite::integer)) AS timeonsite
+    ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev,
+    MAKE_INTERVAL(secs => (timeonsite::INT)) AS timeonsite
 FROM 
     all_sessions
 WHERE (transactions::INT) = 1
@@ -44,8 +44,8 @@ Query #3 - Time on site for the 5 lowest revenue transactions
 ```sql
 SELECT 
     DISTINCT(fullvisitorid), 
-    ROUND((totaltransactionrevenue::numeric)/1000000, 2) AS trans_rev,
-    MAKE_INTERVAL(secs => (timeonsite::integer)) AS timeonsite
+    ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev,
+    MAKE_INTERVAL(secs => (timeonsite::INT)) AS timeonsite
 FROM 
     all_sessions
 WHERE (transactions::INT) = 1

@@ -630,9 +630,51 @@ WHERE country <> 'NULL'
 --20 rows affected
 ```
 
+### **starting_with_data - Question 1**
 
-**starting_with_data - Question 1**
+**Query #1:**
 
-**starting_with_data - Question 2**
+In CTE 'time_to_trans':
 
-**starting_with_data - Question 3**
+* Values for the totaltransactionrevenue column were:
+    * updated to data type numeric from character varying data type
+    * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
+    * rounded to 2 decimal places since the column represents a dollar value.
+
+
+In CTE 'q1_clean':
+* CASE expression used to update '(not set)' values for the country column to 'NULL'.
+* CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
+* Values for the totaltransactionrevenue column were:
+    * updated to data type numeric from character varying data type
+    * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
+    * rounded to 2 decimal places since the column represents a dollar value.
+* WHERE condition used to remove empty/null totaltransactionrevenue column values
+
+End result is a dataset with no empty values
+
+In SELECT query:
+* 'NULL' text values removed for country and city
+```sql
+WITH time_to_trans AS (
+    SELECT 
+        DISTINCT(fullvisitorid), 
+        ROUND((totaltransactionrevenue::numeric)/1000000, 2) AS trans_rev,
+        MAKE_INTERVAL(secs => (timeonsite::integer)) AS timeonsite
+    FROM 
+        all_sessions
+    WHERE (transactions::INT) = 1
+    ORDER BY fullvisitorid, trans_rev DESC
+)
+SELECT 
+    MAX(timeonsite) AS max_time,
+    (SELECT trans_rev FROM time_to_trans WHERE timeonsite='00:31:00') AS max_trans_value,
+    MIN(timeonsite) AS min_time, 
+    (SELECT trans_rev FROM time_to_trans WHERE timeonsite='00:01:23') AS min_trans_value,
+    AVG(timeonsite) AS avg_seconds
+FROM time_to_trans;
+```
+
+### **starting_with_data - Question 2**
+
+### **starting_with_data - Question 3**
