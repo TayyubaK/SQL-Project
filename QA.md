@@ -1,21 +1,24 @@
 ### **Risk Areas**
 What are your risk areas? Identify and describe them.
-
+The major risk areas are blanks, duplicates, data anomalies and data types.
 * Columns with blank/near empty, non-conforming, and/or duplicate values, for example:
         
     * all_sessions.totaltransactionrevenue has only 81 rows with a value out of 15,134 rows
     * all_sessions.country has no nulls but some countries are listed as '(not set)'
     * all_sessions.productsku has duplicates in the column
 
+* All data loaded to pgAdmin as character varying. Correct data type must be cast for some functions. 
 
-* All data loaded as character varying data type. Correct data type must be cast for some functions.
-* With CTEs and subqueries each part has to be checked to ensure each piece is working as intended.
+* With CTEs and subqueries can create a lot of nesting and potential to lose data unintentionally. Each part has to be checked to ensure each piece is working as intended.
+
 
 ### **QA Process**
 
-Describe your QA process and include the SQL queries used to execute it.
+General Approach: 
+* To address the risk of blank and/or duplicate values, check that these values were removed/updated correctly
 * Compare counts and results from query against individual query results of the table(s)
-* Run query piece-by-piece and evaluate the output
+* To address data type risks, review queries and ensure data types selected are appropriate for the context of the column and the calculations being applied.
+* For CTE and subsqueries, run query piece-by-piece and evaluate the output
 
     * All columns appear as expected and with the correct data type
     * Row counts are reasonable and changes in each step match expectations
