@@ -820,7 +820,8 @@ JOIN tmp_alls_products tap ON alls.productsku=tap.productsku
 WHERE (alls.productquantity::INT)>0  
     AND alls.city NOT IN ('not available in demo dataset','(not set)')
 --30 rows affected
-
+```
+```sql
 --How many rows result from the CTE 'rank_tbl' query?
 
 SELECT COUNT(*) FROM (
@@ -869,8 +870,10 @@ GROUP BY
 	mg.city, 
 	tmp_alls_products.v2productname
 )
---Output --> 30
+--Output without any WHERE condition --> 30
 --Agreement between both queries
+
+--Add in the WHERE condition at the end and that's why the result set output is 22
 WHERE top_prod_rank=1
 --Output --> 22
 ```
@@ -933,7 +936,8 @@ ORDER BY
 --3. Australia
 --4. Canada
 --5. Switzerland
-
+```
+```sql
 SELECT 
     DISTINCT country
 FROM all_sessions
@@ -963,7 +967,8 @@ WHERE (transactions::INT)>0
 ORDER BY 
     country
 --2 rows affected. trans_rev values are 67.99 and 82.16. Their sum is 150.15
-
+```
+```sql
 SELECT country, totalrev FROM (
 WITH q1_clean AS (
     SELECT
@@ -1007,7 +1012,8 @@ WHERE (transactions::INT)>0
     AND totaltransactionrevenue IS NOT NULL
 	AND country NOT IN ('not available in demo dataset','(not set)')
 --14281.31
-
+```
+```sql
 SELECT SUM(totalrev) FROM(
 WITH q1_clean AS (
     SELECT
@@ -1059,7 +1065,8 @@ GROUP BY
     country, 
     city;
 --20 rows affected
-
+```
+```sql
 SELECT COUNT(*) FROM (
 WITH q1_clean AS (
     SELECT
@@ -1111,7 +1118,8 @@ WHERE (transactions::INT)>0
 	AND city NOT IN ('not available in demo dataset','(not set)')
     AND country='Israel'
 --> Output city=Tel Aviv-Yafo, trans_rev=602.00
-
+```
+```sql
 SELECT city, totalrev FROM (
 WITH q1_clean AS (
     SELECT
@@ -1151,7 +1159,6 @@ WHERE country <> 'NULL'
 )
 WHERE country='Israel';
 --Output --> city=Tel Aviv-Yafo, totrev=602.00
-
 ```
 
 * Compare sum of totalrev from all_sessions to result set
@@ -1164,7 +1171,8 @@ WHERE (transactions::INT)>0
     AND totaltransactionrevenue IS NOT NULL
 	AND city NOT IN ('not available in demo dataset','(not set)')
 --8188.75
-
+```
+```sql
 SELECT SUM(totalrev) FROM(
 WITH q1_clean AS (
     SELECT
@@ -1257,7 +1265,8 @@ WHERE pageviews IS NOT NULL
 AND country NOT IN ('(not set)')
 AND city NOT IN ('not available in demo dataset','(not set)')
 --282 rows affected
-
+```
+```sql
 SELECT COUNT(*) FROM (
 WITH q7_clean AS (
     SELECT DISTINCT ON (fullvisitorid, date(date), pageviews, country, city)
@@ -1340,7 +1349,8 @@ SELECT COUNT(*) FROM (
 WHERE country='India'
 AND city='Bengaluru';
 --Output --> 72
-
+```
+```sql
 SELECT * FROM (
 WITH q7_clean AS (
     SELECT DISTINCT ON (fullvisitorid, date(date), pageviews, country, city)
@@ -1405,3 +1415,69 @@ AND city='Bengaluru'
 ```
 
 ### **starting_with_data - Question 3**
+* Check all_sessions for rows that meet criteria
+```sql
+SELECT 
+    COUNT(DISTINCT fullvisitorid)
+FROM all_sessions
+WHERE (transactions::INT)=1
+--Output --> 80
+```
+```sql
+SELECT sum_total_ordering_visitors FROM (
+(SELECT 
+    DISTINCT(channelgrouping), 
+    COUNT(DISTINCT fullvisitorid) AS count_ordering_visitors,
+    SUM(COUNT(DISTINCT fullvisitorid)) OVER () AS sum_total_ordering_visitors,
+    ROUND((100*(COUNT(DISTINCT fullvisitorid)/SUM(COUNT(DISTINCT fullvisitorid)) OVER ())),2) AS percent_channel
+FROM 
+    all_sessions
+WHERE (transactions::INT) = 1
+GROUP BY 
+    channelgrouping
+ORDER BY count_ordering_visitors DESC))
+--Output --> 80 (4 rows of the same because of query structure)
+```
+* Check count of each channel if it was individually queried.
+```sql
+SELECT 
+    (SELECT COUNT(DISTINCT fullvisitorid) AS count_ref_grp
+    FROM all_sessions
+    WHERE (transactions::INT)=1
+        AND channelgrouping='Referral'), 
+    (SELECT COUNT(DISTINCT fullvisitorid) AS count_dir_grp
+    FROM all_sessions
+    WHERE (transactions::INT)=1
+        AND channelgrouping='Direct'),
+    (SELECT COUNT(DISTINCT fullvisitorid) AS count_osearch_grp
+    FROM all_sessions
+    WHERE (transactions::INT)=1
+        AND channelgrouping='Organic Search'),
+    (SELECT COUNT(DISTINCT fullvisitorid) AS count_psearch_grp
+        FROM all_sessions
+    WHERE (transactions::INT)=1
+    AND channelgrouping='Paid Search')
+-- Output -->
+-- count_ref_grp = 32 --> ((32/80)*100)=40
+-- count_dir_grp = 23
+-- count_osearch_grp=22
+-- count_psearch_grp=3
+-- 32+23+22+3=80
+-- Results of this query align with answer result set
+```
+* Check percentage total of result set
+```sql
+SELECT SUM(percent_channel) FROM (
+(SELECT 
+    DISTINCT(channelgrouping), 
+    COUNT(DISTINCT fullvisitorid) AS count_ordering_visitors,
+    SUM(COUNT(DISTINCT fullvisitorid)) OVER () AS sum_total_ordering_visitors,
+    ROUND((100*(COUNT(DISTINCT fullvisitorid)/SUM(COUNT(DISTINCT fullvisitorid)) OVER ())),2) AS percent_channel
+FROM 
+    all_sessions
+WHERE (transactions::INT) = 1
+GROUP BY 
+    channelgrouping
+ORDER BY count_ordering_visitors DESC))
+--Output --> 100.00
+```
