@@ -19,7 +19,7 @@ However, because the table is at the transaction-level but mixes in visitor, sit
 
 ### **tmp_clean_cat**
 
-Table was created to clean all_sessions.v2productcategory column. The v2productcategory column had many instances of 'Home/' followed by other values. This didn't allow for proper grouping as each value was distinct. 
+Table was created to clean all_sessions.v2productcategory column. The v2productcategory column had many instances of 'Home/' followed by other values. Of the 74 distinct v2productcategory values, 58 started with 'Home/' followed by other value. This didn't allow for proper grouping as each value was distinct. 
 
 The temp table takes first (main), second, or third delimited value from the original v2productcategory value as the main_category. This allows for better grouping based on the main_category.
 
