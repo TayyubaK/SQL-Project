@@ -14,7 +14,7 @@ The goals of the project were:
     * extract necessary information from the tables 
         * starting_with_questions.md
         * starting_with_data.md
-    * QA queries and the result set
+    * QA the result set
         * QA.md
 
 ## Process
@@ -30,15 +30,15 @@ The goals of the project were:
     * Used CTEs, CAST and CASE to clean within queries
     * Created temp tables to clean data that required more extensive cleaning (see cleaning_data.md) 
         * tmp_alls_products - clean source for product SKU and product names
-        * tmp_clean_cats - clean source for mains product categories
+        * tmp_clean_cats - clean source for main product categories
 * Reviewed query results
 
 ## Results
-The data tables provide information on an e-commerce website which sells a wide varierty of products from electronics, to apparel, to office etc. Visitors from many U.S. cities drive a large part of the revenue generation. Nest and apparel products seem to be large favourites for shoppers. 
+The data tables provide information on an e-commerce website which sells a wide varierty of products from electronics, to apparel, to office equipment etc. Visitors from many U.S. cities drive a large part of the revenue generation. Nest and apparel products seem to be large favourites for shoppers. 
 
 Tables had data covering transactions/visitor information, analytics, and product focused details. For the scope/timeline of this project I stayed mostly within the 'all_sessions' and 'analytics' tables to extract country, city, revenue, and preferred product information.
 
-Overview of tables available:
+Overview of tables:
 * all_sessions (32 columns, 15,134 rows)
     * transactions level information for visitors and products (transactions, revenue etc.)
     * visitor information (e.g. unique id for visitors, date of visit, country, city)
@@ -71,9 +71,9 @@ I also created two temp tables:
 ## Future Goals
 
 * Create a data dictionary to define columns and their characteristics
-* Separate columns into their own tables (and normalize). For example, the 'all_sessions' has 32 columns.
+* Separate columns into their own tables (and normalize). For example, the 'all_sessions' has 32 columns covering a wide range.
     * Create better connections between tables. Many columns interfere with the relationship of other columns. 
-    * Create a copy database for more deep cleaning
+    * Create a copy of the database for more deep cleaning
 * Organize the project files based on questions addressed and cover analysis, data cleaning, question querying, and QA in the same file. Rather than separate files for questions, data cleaning, and QA.
     * A section to cover analysis results, table reviews, and why certain columns are used could be insightful.
 * Do more exploratory querying with the 'analytics' and 'products' tables
