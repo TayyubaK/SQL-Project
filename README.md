@@ -28,7 +28,9 @@ The goals of the project were:
     * distinct values for columns with text
 * Selected columns to use for queries
     * Used CTEs, CAST and CASE to clean within queries
-    * Created temp tables to clean data that required more extensive cleaning
+    * Created temp tables to clean data that required more extensive cleaning (see cleaning_data.md) 
+        * tmp_alls_products - clean source for product SKU and product names
+        * tmp_clean_cats - clean source for mains product categories
 * Reviewed query results
 
 ## Results
@@ -38,18 +40,20 @@ The data tables provide information on an e-commerce website.
 
 The site sells a wide varierty of products from electronics, to apparel, to office etc. Visitors from many U.S. cities drive a large part of the revenue generation. Nest and apparel products seem to be large favourites for shoppers. 
 
-* all_sessions
-    * transactions level information for visitors and products
-    * visitor information (e.g. unique id for visitors, country, city)
+* all_sessions (32 columns, 15,134 rows)
+    * transactions level information for visitors and products (transactions, revenue etc.)
+    * visitor information (e.g. unique id for visitors, date of visit, country, city)
     * some analytics
         * channel the visitor belongs to
         * when they visited, for how long, and page views
+    * several nearly empty columns (e.g. productrefundamount) 
 
-
+* analytics (14 columns, 4,301,122 rows)
+    *  
 
 ## Challenges 
 * Many columns were not clear on the basis of their names and data alone. A SME would have been helpful or some additional context about the source of the data.
-* Tables have large gaps in data (whole columns of nulls, columns of nearly all nulls). This can affect the robustness of the results.
+* Tables have large gaps in data (whole columns of nulls or nearly all nulls). This can affect the robustness of the results.
 * Timeline to deliver results created a need to evaluate the scope/effort of different approaches to data cleaning. This affects the quality and extent of cleaning that can be done.  
 
 ## Future Goals

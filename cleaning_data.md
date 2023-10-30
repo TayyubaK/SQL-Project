@@ -1,18 +1,23 @@
-What issues will you address by cleaning the data?
-
-
-Queries:
-Below, provide the SQL queries you used to clean your data.
-
+### **Issues to Address**
 * Identify columns to use, then find:
     * nulls
     * duplicates
     * anomalies
 
-* All data was loaded as character varying. For queries, CAST to the appropriate data type for use. 
+* Clean data without major changes to the source data. 
+    * Use temp tables where extensive cleaning is needed
+    * All data was loaded as character varying. For queries, CAST to the appropriate data type for use.
+
+_**Note about handling nulls:**_
+
+The decision was made to eliminate nulls and anomalies, rather than replace with averages, zeroes, or other values. 
+
+For example, the all_sessions table has 15,134 rows but only 81 of those rows have a value for 'totaltransactionrevenue'. The number is further reduced once country/city name anomalies are addressed. This affects the results. 
+
+However, because the table is at the transaction-level but mixes in visitor, site, and product information it's not possible to declare that all rows are a successful transaction completed and should be populated with the average, or to populate nulls with zero.
 
 
-### tmp_clean_cat
+### **tmp_clean_cat**
 
 Table was created to clean all_sessions.v2productcategory column. The v2productcategory column had many instances of 'Home/' followed by other values. This didn't allow for proper grouping as each value was distinct. 
 
@@ -112,7 +117,7 @@ ORDER BY v2productcategory
 ```
 
 
-### tmp_alls_products
+### **tmp_alls_products**
 
 Temp table was created to clean all_sessions.productsku and all_sessions.v2product name columns. Product SKU is a unique product identifier. Several productsku values may have the same name (for a common product), but a productsku cannot have multiple names. 
 
@@ -122,7 +127,7 @@ Created tmp_alls_products for 1:1 relationship between productsku and v2productn
 
 **Data Quality Concerns:**
 
-* Where multiple names existed for a productsku, the approach was to take the name with the highest count. This may not be the best/correct choice. Product names are also columns in tables products and sales_report, and this choice may not align with those columns. 
+* Where multiple names existed for a productsku, the approach was to take the name with the highest count. This may not be the best/correct choice for some. Product names are also columns in tables products and sales_report, and this choice may not align with those columns. 
 
 ```sql
 --Step 1: Add productsku and v2productname values that already have a 1:1 relationship.
@@ -468,7 +473,6 @@ ORDER BY
 * CASE expression used to update '(not set)' values for the country column to 'NULL'.
 * CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
 * productquantity CAST from charactering varying to integer data type and filtered for values greater than 0
-
 * WHERE conditions
     * transactions column CAST from character varying to integer data type and filtered for value of 1
     * 'NULL' text values are removed for country and city columns (in the outer query)
