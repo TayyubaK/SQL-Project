@@ -406,6 +406,9 @@ WHERE totaltransactionrevenue IS NOT NULL
 ### **starting_with_questions - Question 2**
 
 **Check CTE 'unit_data'** query by uncommenting the matching opening and ending queries. The uncommented part stays for all checks.
+
+Reset comments before running the next check.
+
 * 7 columns queried, and 7 columns in the result set
 * Check 1: All values for transactions should be 1.
 * Check 2: There should be no rows where country is '(not set)' or city is 'not available in demo dataset' or '(not set)'
@@ -415,12 +418,18 @@ WHERE totaltransactionrevenue IS NOT NULL
 * Check 6: Check how many cities were updated to 'NULL'
 
 ```sql
---Check 1: SELECT COUNT(transactions) FROM
---Check 2: SELECT COUNT(country), COUNT(city) FROM
---Check 3: SELECT COUNT(units_sold) FROM 
---Check 4: SELECT COUNT(*) FROM 
---Check 5: SELECT COUNT(country) FROM
---Check 6: SELECT COUNT(city) FROM
+--Check 1: 
+    --SELECT COUNT(transactions) FROM
+--Check 2: 
+    --SELECT COUNT(country), COUNT(city) FROM
+--Check 3: 
+    --SELECT COUNT(units_sold) FROM 
+--Check 4: 
+    --SELECT COUNT(*) FROM 
+--Check 5: 
+    --SELECT COUNT(country) FROM
+--Check 6: 
+    --SELECT COUNT(city) FROM
 (SELECT 
         DISTINCT ON (
             alls.totaltransactionrevenue, 
@@ -451,12 +460,17 @@ WHERE totaltransactionrevenue IS NOT NULL
         AND(totaltransactionrevenue::INT) IS NOT NULL
         AND (units_sold::INT) IS NOT NULL
     ORDER BY totaltransactionrevenue DESC)
---Check 1: WHERE (transactions::INT)=1;
---Check 2: WHERE country IN ('(not set)') OR city IN ('not available in demo dataset','(not set)');
---Check 3: WHERE units_sold IS NULL; 
+--Check 1: 
+    --WHERE (transactions::INT)=1;
+--Check 2: 
+    --WHERE country IN ('(not set)') OR city IN ('not available in demo dataset','(not set)');
+--Check 3: 
+    --WHERE units_sold IS NULL; 
 --Check 4: ---
---Check 5: WHERE country='NULL'
---Check 6: WHERE city='NULL'
+--Check 5: 
+    --WHERE country='NULL';
+--Check 6: 
+    --WHERE city='NULL';
 
 --Check 1 output -> 39
 --Check 2 output -> 0, 0 
@@ -465,7 +479,7 @@ WHERE totaltransactionrevenue IS NOT NULL
 --Check 5 output -> 0
 --Check 6 output -> 11 
 ```
-Compare results to querying all_sessions, analytics, tmp_alls_products
+Compare result of check 1 to querying all_sessions, analytics, tmp_alls_products
 ```sql
 SELECT 
     DISTINCT(totaltransactionrevenue), 
@@ -480,11 +494,13 @@ JOIN tmp_alls_products ON alls.productsku=tmp_alls_products.productsku
 WHERE (transactions::INT)=1
     AND (a.units_sold::INT) > 0
     AND (a.units_sold::INT) IS NOT NULL
-    AND totaltransactionrevenue IS NOT NULL
+    AND totaltransactionrevenue IS NOT NULL;
 
---39 rows
+--39 rows affected; matches result of check 1
 ```
-**Check CTE 'q2_clean'** - this filters out 'NULL' country and city values. Since the first CTE had 39 rows and 11 were updated to NULL (check #6 above), **expected result is 28 rows**.
+*Note: checks 2-6 were designed to test data integrity/null handling of the query itself. Comparison not needed.
+
+**Check CTE 'q2_clean'** - this filters out 'NULL' country and city values. Since the first CTE 'unit_data' had 39 rows and 11 were updated to NULL (check #6 above), **expected result is 28 rows**.
 ```sql
 WITH unit_data AS(
     SELECT 
@@ -522,10 +538,9 @@ WITH unit_data AS(
 --q2_clean AS (
 	SELECT * FROM unit_data
 	WHERE country <> 'NULL'
-	AND city <> 'NULL'
+	AND city <> 'NULL';
 
 --Output -> 28 rows
-
 ```
 Compare results to querying all_sessions, analytics, tmp_alls_products
 ```sql
@@ -545,13 +560,13 @@ WHERE (transactions::INT)=1
     AND totaltransactionrevenue IS NOT NULL
 --adding in additional conditions
 	AND country NOT IN ('(not set)')
-	AND city NOT IN ('not available in demo dataset','(not set)')
+	AND city NOT IN ('not available in demo dataset','(not set)');
 
 --Output -> 28 rows
 ```
 Manual check - The query below keeps the same rows but a column 'city_unit_count' is added to sum the number units_sold for that city/country group. Each row represents an order. 
 
-For example, the city_unit_count=10 for San Franciso, United Stated, and the number of rows is 6. If 10 products were ordered across 6 orders, then average is 1.66, which matches the result set of the query.
+For example, the city_unit_count=10 for San Franciso, United Stated, and the number of rows is 6. If 10 products were ordered across 6 orders, then average is 1.67, which matches the result set of the query.
 ```sql
 WITH unit_data AS(
     SELECT 
@@ -605,7 +620,7 @@ GROUP BY
     city, 
     v2productname, 
     units_sold;
---28 rows
+--28 rows affected; 6 rows for San Francisco, with count of 10. 10/6 = 1.67
 ```
 
 ### **starting_with_questions - Question 3**
