@@ -34,12 +34,11 @@ The goals of the project were:
 * Reviewed query results
 
 ## Results
-(fill in what you discovered this data could tell you and how you used the data to answer those questions)
+The data tables provide information on an e-commerce website which sells a wide varierty of products from electronics, to apparel, to office etc. Visitors from many U.S. cities drive a large part of the revenue generation. Nest and apparel products seem to be large favourites for shoppers. 
 
-The data tables provide information on an e-commerce website. 
+Tables had data covering transactions/visitor information, analytics, and product focused details. For the scope/timeline of this project I stayed mostly within the 'all_sessions' and 'analytics' tables to extract country, city, revenue, and preferred product information.
 
-The site sells a wide varierty of products from electronics, to apparel, to office etc. Visitors from many U.S. cities drive a large part of the revenue generation. Nest and apparel products seem to be large favourites for shoppers. 
-
+Overview of tables available:
 * all_sessions (32 columns, 15,134 rows)
     * transactions level information for visitors and products (transactions, revenue etc.)
     * visitor information (e.g. unique id for visitors, date of visit, country, city)
@@ -52,9 +51,17 @@ The site sells a wide varierty of products from electronics, to apparel, to offi
     * information about unique visitors, their visit date time, page views.
     * some columns have no nulls 
 * products (7 columns, 1,092 rows)
-    * 
+    * product-level information like SKU, name, sentimentscore, stock etc.
 * sales_by_sku (2 columns, 462 rows)
+    * Basic sales info for products: productsku and amount ordered
 * sales_report (8 columns, 454 rows)
+    * Bridges products and sales_by_sku to a degree 
+
+I also created two temp tables:
+* tmp_alls_products
+    * Contains one name for each productsku, using the 'all_sessions' table as the main source
+* tmp_clean_cats
+    * Extracts 1 main category for each distinct category in the 'all_sessions' table. This allowed for greater insight and better grouping of product categories.
 
 ## Challenges 
 * Many columns were not clear on the basis of their names and data alone. A SME would have been helpful or some additional context about the source of the data.
@@ -64,5 +71,8 @@ The site sells a wide varierty of products from electronics, to apparel, to offi
 ## Future Goals
 
 * Create a data dictionary to define columns and their characteristics
-* Separate columns into their own tables (and normalize). For example, the 'all_sessions' has 32 columns. Many columns interfere with the relationship of other columns. 
-* Do more exploratory querying with the analytics and products table
+* Separate columns into their own tables (and normalize). For example, the 'all_sessions' has 32 columns.
+    * Create better connections between tables. Many columns interfere with the relationship of other columns. 
+    * Create a copy database for more deep cleaning
+* Organize the project files based on questions addressed and cover analysis, data cleaning, question querying, and QA in the same file. Rather than separate files for questions, data cleaning, and QA.
+* Do more exploratory querying with the 'analytics' and 'products' tables
