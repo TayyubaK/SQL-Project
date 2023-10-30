@@ -535,13 +535,12 @@ In CTE 'q1_clean':
     * updated to data type numeric from character varying data type
     * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
     * rounded to 2 decimal places since the column represents a dollar value.
-    * WHERE condition used to remove empty/null values
+* WHERE condition used to remove empty/null totaltransactionrevenue column values
 
 End result is a dataset with no empty values
 
 In SELECT query:
 * 'NULL' text values removed for country
-
 
 ```sql
 WITH q1_clean AS (
@@ -576,6 +575,61 @@ ORDER BY
 ```
 
 **Query #2:**
+
+In CTE 'q1_clean':
+* CASE expression used to update '(not set)' values for the country column to 'NULL'.
+* CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
+* Values for the totaltransactionrevenue column were:
+    * updated to data type numeric from character varying data type
+    * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
+    * rounded to 2 decimal places since the column represents a dollar value.
+* WHERE condition used to remove empty/null totaltransactionrevenue column values
+
+End result is a dataset with no empty values
+
+In SELECT query:
+* 'NULL' text values removed for country and city
+
+```sql
+WITH q1_clean AS (
+    SELECT
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+        ELSE city
+        END AS city,
+    SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
+    FROM 
+        all_sessions
+    WHERE totaltransactionrevenue IS NOT NULL
+    GROUP BY 
+        country, 
+        city
+    ORDER BY 
+        country, 
+        city, 
+        totalrev DESC
+)
+SELECT 
+    country, 
+    city, 
+    totalrev,
+    SUM(totalrev) OVER () sum_totalrev,
+    ROUND((100*(totalrev/SUM(totalrev) OVER ())),2) AS percent_rev,
+    DENSE_RANK() OVER (
+        PARTITION BY country
+        ORDER BY totalrev DESC) AS rev_rank
+FROM 
+    q1_clean
+WHERE country <> 'NULL' 
+    AND city <> 'NULL';
+
+--20 rows affected
+```
+
 
 **starting_with_data - Question 1**
 
