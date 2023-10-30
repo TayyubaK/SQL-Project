@@ -136,7 +136,8 @@ FROM
     all_sessions
 WHERE (transactions::int)=1
 --81 results 
-
+```
+```sql
 --add in condition for totaltransactionrevenue 
 SELECT 
     CASE 
@@ -152,7 +153,8 @@ FROM
 WHERE (transactions::int)=1
     AND totaltransactionrevenue IS NOT NULL
 --81 results; this means that rows that have transaction=1, also have a value for totaltransactionrevenue
-
+```
+```sql
 --Check how many rows with transaction data in all_sessions have countries that are '(not set)'
 SELECT 
     country, 
@@ -162,7 +164,8 @@ WHERE (transactions::int)=1
     AND totaltransactionrevenue IS NOT NULL
     AND country='(not set)'
 --0 rows affected; there were no rows with transaction data where the country column had '(not set)'
-
+```
+```sql
 --Check how many rows with transaction data in all_sessions have cites that are '(not set)' or 'not available in demo dataset'
 SELECT 
     country, 
@@ -172,8 +175,9 @@ WHERE (transactions::int)=1
     AND totaltransactionrevenue IS NOT NULL
     AND city IN ('not available in demo dataset','(not set)')
 --25 rows affected
-
-Check how many rows remain after 'NULL' country and city are removed
+```
+```sql
+--Check how many rows remain after 'NULL' country and city are removed
 WITH null_check AS (
     SELECT 
         CASE 
@@ -193,8 +197,9 @@ FROM null_check
 WHERE country = 'NULL'
     OR city = 'NULL'
 --25 results which matches with the number of cities that had '(not set)' or 'not available in demo dataset'
-
---Check how many rows remain after 'NULL' countr/city values are removed
+```
+```sql
+--Check how many rows remain after 'NULL' country/city values are removed
 WITH null_check AS (
     SELECT 
         CASE 
