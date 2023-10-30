@@ -246,7 +246,7 @@ WITH q1_clean AS (
             WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
             ELSE city
         END AS city,
-        SUM(ROUND((totaltransactionrevenue::numeric)/1000000,2)) AS totalrev
+        SUM(ROUND((totaltransactionrevenue::NUMERIC)/1000000,2)) AS totalrev
     FROM 
         all_sessions
     WHERE totaltransactionrevenue IS NOT NULL
@@ -428,7 +428,7 @@ WITH main_group AS (
             v2productcategory
         FROM 
             all_sessions
-        WHERE (transactions::int)=1) ao
+        WHERE (transactions::INT)=1) ao
     LEFT JOIN tmp_clean_cat ON ao.v2productcategory=tmp_clean_cat.v2productcategory
     WHERE country <> 'NULL'
         AND city <> 'NULL'

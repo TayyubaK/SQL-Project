@@ -185,7 +185,7 @@ WITH main_group AS (
             v2productcategory
         FROM 
             all_sessions
-        WHERE (transactions::int)=1) ao
+        WHERE (transactions::INT)=1) ao
     LEFT JOIN tmp_clean_cat ON ao.v2productcategory=tmp_clean_cat.v2productcategory
     WHERE country <> 'NULL'
         AND city <> 'NULL'
