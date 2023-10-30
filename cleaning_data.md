@@ -1,5 +1,5 @@
 ### **Issues to Address**
-* Identify columns to use, then find:
+* Data clean columns to be used in queries. Address:
     * nulls
     * duplicates
     * anomalies
