@@ -636,31 +636,22 @@ WHERE country <> 'NULL'
 
 In CTE 'time_to_trans':
 
-* Values for the totaltransactionrevenue column were:
+* Values for the 'totaltransactionrevenue' column were:
     * updated to data type numeric from character varying data type
     * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
     * rounded to 2 decimal places since the column represents a dollar value.
+* Values for the 'timeonsite' column were CAST from character varying data type to integer, and then converted to intervals of seconds
+* Values for the 'transactions' column were CAST from character varying data type to integer, and then filtered for values of 1.
+* Distinct 'fullvisitorid' seleected to remove duplicate rows. 
 
+End result is a dataset with no empty values.
 
-In CTE 'q1_clean':
-* CASE expression used to update '(not set)' values for the country column to 'NULL'.
-* CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
-* Values for the totaltransactionrevenue column were:
-    * updated to data type numeric from character varying data type
-    * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
-    * rounded to 2 decimal places since the column represents a dollar value.
-* WHERE condition used to remove empty/null totaltransactionrevenue column values
-
-End result is a dataset with no empty values
-
-In SELECT query:
-* 'NULL' text values removed for country and city
 ```sql
 WITH time_to_trans AS (
     SELECT 
         DISTINCT(fullvisitorid), 
-        ROUND((totaltransactionrevenue::numeric)/1000000, 2) AS trans_rev,
-        MAKE_INTERVAL(secs => (timeonsite::integer)) AS timeonsite
+        ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev,
+        MAKE_INTERVAL(secs => (timeonsite::INT)) AS timeonsite
     FROM 
         all_sessions
     WHERE (transactions::INT) = 1
@@ -675,6 +666,142 @@ SELECT
 FROM time_to_trans;
 ```
 
+**Query #2:**
+* Values for the 'totaltransactionrevenue' column were:
+    * updated to data type numeric from character varying data type
+    * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
+    * rounded to 2 decimal places since the column represents a dollar value.
+* Values for the 'timeonsite' column were CAST from character varying data type to integer, and then converted to intervals of seconds
+* Values for the 'transactions' column were CAST from character varying data type to integer, and then filtered for values of 1.
+* Distinct 'fullvisitorid' selected to remove duplicate rows. 
+
+End result is a dataset with no empty values.
+
+```sql
+SELECT 
+    DISTINCT(fullvisitorid), 
+    ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev,
+    MAKE_INTERVAL(secs => (timeonsite::INT)) AS timeonsite
+FROM 
+    all_sessions
+WHERE (transactions::INT) = 1
+ORDER BY trans_rev DESC
+LIMIT 5;
+```
+
+**Query #3:**
+* Values for the 'totaltransactionrevenue' column were:
+    * updated to data type numeric from character varying data type
+    * divided by 1,000,000 because unit cost in the dataset needed to be divided by 1,000,000, so related values needed the same consideration.
+    * rounded to 2 decimal places since the column represents a dollar value.
+* Values for the 'timeonsite' column were CAST from character varying data type to integer, and then converted to intervals of seconds
+* Values for the 'transactions' column were CAST from character varying data type to integer, and then filtered for values of 1.
+* Distinct 'fullvisitorid' selected to remove duplicate rows. 
+
+End result is a dataset with no empty values.
+```sql
+SELECT 
+    DISTINCT(fullvisitorid), 
+    ROUND((totaltransactionrevenue::NUMERIC)/1000000, 2) AS trans_rev,
+    MAKE_INTERVAL(secs => (timeonsite::INT)) AS timeonsite
+FROM 
+    all_sessions
+WHERE (transactions::INT) = 1
+ORDER BY trans_rev ASC
+LIMIT 5;
+```
 ### **starting_with_data - Question 2**
 
+**In CTE 'q7_clean':**
+* DISTINCT ON removes rows that have the same values for all columns in the grouping, keeping only one representative. This helps to eliminate some duplication.
+* Column 'date' CAST from character varying to date data type.
+* CASE expression used to update '(not set)' values for the country column to 'NULL'.
+* CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
+
+**In CTE 'cc_clean':**
+* 'NULL' text values are removed for country and city columns
+
+Result set now has no anomalies for country and city columns.
+
+**Data Quality Concerns:**
+* Although some duplicates are removed with the DISTINCT ON, there are some rows remaining where a column differs from the whole but the transaction otherwise seems to be a duplicate. The dataset needs a better identifier for unique transactions for robust removal of duplicates.
+
+```sql
+WITH q7_clean AS (
+    SELECT DISTINCT ON (fullvisitorid, date(date), pageviews, country, city)
+        fullvisitorid, 
+        date(date), 
+        pageviews, 
+        totaltransactionrevenue, 
+        transactions, 
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE        
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city
+    FROM 
+        all_sessions
+    GROUP BY 
+        fullvisitorid, 
+        date(date), 
+        pageviews, 
+        totaltransactionrevenue, 
+        transactions, 
+        country, 
+        city
+    ORDER BY 
+        fullvisitorid, 
+        date(date)
+),
+clean_cc AS (
+    SELECT 
+        country, 
+        city, 
+        COUNT(pageviews) AS count_pageviews
+    FROM 
+        q7_clean
+    WHERE country <> 'NULL'
+        AND city <> 'NULL'
+    GROUP BY 
+        country, 
+        city
+    ORDER BY count_pageviews DESC
+)
+SELECT 
+    country, 
+    city, 
+    count_pageviews,
+    DENSE_RANK() OVER (
+        ORDER BY count_pageviews DESC) AS viewcount_rank
+FROM 
+    clean_cc
+GROUP BY 
+    country, 
+    city, 
+    count_pageviews
+ORDER BY viewcount_rank ASC;
+--282 rows affected.
+```
+
 ### **starting_with_data - Question 3**
+* Values for the 'transactions' column were CAST from character varying data type to integer, and then filtered for values of 1.
+* Distinct 'channelgrouping' selected to remove duplicates. 
+
+```sql
+SELECT 
+    DISTINCT(channelgrouping), 
+    COUNT(DISTINCT fullvisitorid) AS count_ordering_visitors,
+    SUM(COUNT(DISTINCT fullvisitorid)) OVER () AS sum_total_ordering_visitors,
+    ROUND((100*(COUNT(DISTINCT fullvisitorid)/SUM(COUNT(DISTINCT fullvisitorid)) OVER ())),2) AS percent_channel
+FROM 
+    all_sessions
+WHERE (transactions::INT) = 1
+GROUP BY 
+    channelgrouping
+ORDER BY count_ordering_visitors DESC
+
+--4 rows affected
+```
