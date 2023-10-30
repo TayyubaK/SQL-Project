@@ -217,7 +217,6 @@ GROUP BY
     main_category
 ORDER BY 
     count_rank_1 DESC;
-
 --8 rows affected.
 ```
 **Assumptions:**

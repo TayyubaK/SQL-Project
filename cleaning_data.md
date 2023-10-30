@@ -268,8 +268,6 @@ ORDER BY
     totalrev DESC;
 ```
 
-
-
 * Check country names for issues
 ```sql
 SELECT 
@@ -406,19 +404,14 @@ Used tmp_clean_cat (data cleaning for it is described above)
 * WHERE conditions
     * transactions column CAST from character varying to integer data type and filtered for value of 1
     * 'NULL' text values are removed for country and city columns (in the outer query)
-* DISTINCT ON used to 
+
+End result are rows with no blanks and no anomalies for country and city columns. Subsequent queries are not for data cleaning.
 
 
-DISTINCT ON removes rows that have the same values for all columns in the grouping, keeping only one representative. This helps to eliminate some duplication.
-* CASE expression used to update '(not set)' values for the country column to 'NULL'.
-* CASE expression used to update '(not set)' and 'not available in demo dataset' values for the city column to 'NULL'.
-* WHERE conditions
-    
-    * transactions column CAST from character varying to integer data type and filtered for value of 1
-    * totaltransactionrevenue column CAST from character varying to integer data type and filtered to remove NULL
-    * units_sold column CAST from character varying to integer data type and filtered to remove NULL
 
-End result are rows with no empty nulls. The 'NULL' values remaining are text.
+
+
+
 
 ```sql
 WITH main_group AS (
@@ -477,7 +470,9 @@ ORDER BY
 --8 rows affected.
 ```
 
-**starting_with_questions - Question 4**
+### **starting_with_questions - Question 4**
+
+
 
 **starting_with_questions - Question 5**
 
