@@ -166,7 +166,10 @@ GROUP BY
 
 WITH main_group AS (
     SELECT 
-        DISTINCT ON( ao.country, ao.city, ao.productsku, ao.v2productcategory)ao.*, 
+        ao.country, 
+        ao.city, 
+        ao.productsku, 
+        ao.v2productcategory, 
         tmp_clean_cat.main_category
     FROM (
         SELECT 

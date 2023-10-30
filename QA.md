@@ -607,27 +607,30 @@ GROUP BY
 
 ```sql
 SELECT DISTINCT(main_category), country, city FROM (
+SELECT 
+    ao.country, 
+    ao.city,
+    ao.productsku,
+    ao.v2productcategory, 
+    tmp_clean_cat.main_category
+FROM (
     SELECT 
-            DISTINCT ON(ao.country, ao.city, ao.productsku, ao.v2productcategory)ao.*, 
-            tmp_clean_cat.main_category
-        FROM (
-            SELECT 
-                CASE 
-                    WHEN country='(not set)' THEN 'NULL'
-                    ELSE country
-                END AS country,
-                CASE
-                    WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
-                    ELSE city
-                END AS city, 
-                productsku, 
-                v2productcategory
-            FROM 
-                all_sessions
-            WHERE (transactions::int)=1) ao
-        LEFT JOIN tmp_clean_cat ON ao.v2productcategory=tmp_clean_cat.v2productcategory
-        WHERE country <> 'NULL'
-            AND city <> 'NULL'
+        CASE 
+            WHEN country='(not set)' THEN 'NULL'
+            ELSE country
+        END AS country,
+        CASE
+            WHEN city IN ('not available in demo dataset','(not set)') THEN 'NULL'
+            ELSE city
+        END AS city, 
+        productsku, 
+        v2productcategory
+    FROM 
+        all_sessions
+    WHERE (transactions::int)=1) ao
+LEFT JOIN tmp_clean_cat ON ao.v2productcategory=tmp_clean_cat.v2productcategory
+WHERE country <> 'NULL'
+    AND city <> 'NULL'
 )
 --The query for main group has 56 rows in total. 
 --Within those there are 41 distinct main categories for city and country.
