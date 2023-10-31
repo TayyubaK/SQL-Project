@@ -18,7 +18,7 @@ The goals of the project were:
         * QA.md
 
 ## Process
-* Loaded .csv files with all columns set to 'character varying'
+* Loaded .csv files into pgAdmin under database 'ecommerce'. All columns set to 'character varying'
 * Reviewed each table for number of columns and names
 * Reviewed each column to determine 
     
